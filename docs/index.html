@@ -315,6 +315,28 @@
       <p>그 카드가 <span class="tag-sim">시뮬레이션</span> 이기 때문입니다. <span class="tag-real">실측</span>
          태그가 붙은 카드(▶)를 재생하면 실제 한국어 음성이 들립니다.</p>
 
+      <h3>엔진별 파인튜닝(커스텀 음성)</h3>
+      <p>본인/브랜드 음성으로 바꾸려면 각 엔진을 파인튜닝합니다. 공통 준비물:
+         <b>음성 wav + 전사 텍스트</b>(보통 수십 분~수 시간 분량)와 <b>GPU</b>.
+         처음부터 학습보다 <b>사전학습 체크포인트에서 이어 학습(파인튜닝)</b>이 빠릅니다.</p>
+      <ul>
+        <li><b>Supertonic</b> — 그래디언트 학습 대신 <b>Voice Builder(음성 클로닝)</b> 로
+            참조 음성에서 커스텀 보이스 스타일 생성 →
+            <code>get_voice_style()</code> 에 지정.
+            <a href="https://github.com/supertone-inc/supertonic" target="_blank" rel="noopener">가이드</a></li>
+        <li><b>piper-plus</b> — 베이스 음성모델(.onnx/ckpt)에서 데이터셋으로 <b>resume 학습</b>,
+            또는 Speaker Encoder 기반 음성 클로닝.
+            <a href="https://github.com/ayutaz/piper-plus" target="_blank" rel="noopener">가이드</a></li>
+        <li><b>kr-custom-tts</b> (ESPnet) — ESPnet2 TTS 레시피에서 사전학습 모델을
+            <code>--init_param</code> 초기값으로 두고 본인 데이터로 파인튜닝.
+            <a href="https://github.com/seastar105/kr-custom-tts" target="_blank" rel="noopener">가이드</a></li>
+        <li><b>SCE-TTS</b> — 원 가이드(Tacotron2 자가학습) 또는 데모와 동일한 ESPnet VITS 파인튜닝.
+            <a href="https://gist.github.com/yunho0130" target="_blank" rel="noopener">가이드</a></li>
+      </ul>
+      <p>학습 산출물은 <code>tts-bmt run --model &lt;engine&gt;=&lt;경로&gt;</code> 로 연결하면
+         해당 카드가 본인 음성으로 바뀝니다. 단계별 셀은
+         <a href="https://github.com/techgit01/tts-bmt-poc/blob/main/notebooks/tts_bmt_colab.ipynb" target="_blank" rel="noopener">Colab 노트북</a>의 (선택) 학습 섹션 참고.</p>
+
       <h3>데이터 출처</h3>
       <p>실측 음성은 Google Colab에서 생성해 <code>docs/</code> 에 커밋하고, GitHub Actions가
          그대로 게시합니다. 이 페이지는 정적 <code>benchmark.json</code> 만 읽습니다.</p>
@@ -352,8 +374,9 @@
   <footer>
     <div class="disclaimer" id="disclaimer"></div>
     <p>
-      모든 측정값은 로컬에서 <code>uv run tts-bmt run</code> 으로 생성되어
-      <code>docs/results/benchmark.json</code> 에 저장됩니다. 이 페이지는 그 정적 산출물만 읽습니다.
+      실측 음성은 Google Colab에서 <code>tts-bmt run</code> 으로 생성해
+      <code>docs/results/benchmark.json</code> + <code>docs/audio/</code> 에 커밋하고,
+      GitHub Actions가 그대로 게시합니다. 이 페이지는 그 정적 산출물만 읽습니다.
     </p>
     <p>
       후보 출처 ·

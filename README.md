@@ -1,15 +1,20 @@
 # 한국어 TTS 벤치마크 POC
 
 > 중국 개발 엔진 제외 · 상업용 무료(MIT 계열) · 한국어 지원
-> **uv + Python 3.12** 로 로컬 측정 → **GitHub Pages** 정적 데모로 결과/오디오 공개
+> **uv + Python 3.12** · 무거운 추론은 **Google Colab**에서 → **GitHub Pages** 정적 데모로 공개
 
 🔊 **라이브 데모:** https://techgit01.github.io/tts-bmt-poc/
 📦 **저장소:** https://github.com/techgit01/tts-bmt-poc
 
 카드사 FDS(부정거래 탐지) 음성 상담을 가정한 한국어 문장으로, 오픈소스 TTS 4종을
-같은 조건에서 합성하고 속도 지표를 측정합니다. 무거운 추론은 로컬에서 미리 돌려
-오디오(`.wav`)와 측정 결과(`benchmark.json`)를 만들고, GitHub Pages에는 그 **정적
-산출물만** 올려 브라우저에서 재생·비교합니다. (Pages는 서버 코드를 실행하지 않음)
+같은 조건에서 합성하고 속도 지표를 측정합니다. 무거운 추론(Supertonic/ESPnet)은
+**Colab에서 미리 돌려** 오디오(`.wav`)와 측정 결과(`benchmark.json`)를 만들어 커밋하고,
+GitHub Pages에는 그 **정적 산출물만** 올려 브라우저에서 재생·비교합니다.
+(Pages는 서버 코드를 실행하지 않음)
+
+**현재 데모: 4종 중 3종이 실제 한국어 음성** — Supertonic ✅ · kr-custom-tts ✅ · SCE-TTS ✅ ·
+piper-plus 만 시뮬레이션 톤(호환 한국어 모델 부재). 데모 우측 상단 **`? 도움말`** 에서
+모드·지표 설명을 볼 수 있습니다.
 
 ---
 
@@ -42,7 +47,8 @@ cd tts-bmt-poc
 ./setup.sh            # uv 자동 설치 + Python 3.12 고정 + 의존성 설치
 ./run.sh --serve      # 벤치마크 실행 후 http://localhost:8000 로 데모 미리보기
 ```
-> `./setup.sh --full` 은 실측 엔진(supertonic, piper)까지 설치합니다.
+> `./setup.sh --full` 은 Supertonic(실측) + piper 패키지까지 설치합니다.
+> kr-custom/SCE 의 ESPnet(KSS)은 무거워 **Colab 권장** (`uv sync --extra espnet`, piper와 공존 불가).
 > `./run.sh --list` 는 엔진/설치 상태만 출력합니다.
 
 ### 또는 수동으로
@@ -52,7 +58,7 @@ cd tts-bmt-poc
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-#### 2) 프로젝트 준비 (Python 3.12 LTS 고정)
+#### 2) 프로젝트 준비 (Python 3.12 고정)
 ```bash
 uv python pin 3.12     # .python-version 에 3.12 기록
 uv sync                # 코어 의존성만 설치 (가벼움)
@@ -95,14 +101,15 @@ uv run tts-bmt run --model kr_custom=models/kr_exp --model sce_tts=models/sce_ex
 > `mode` 는 엔진 설치 여부가 아니라 **실제로 합성된 결과**로 판정됩니다.
 > 엔진이 있어도 실제 합성이 아직 폴백(시뮬레이션)이면 `simulated` 로 정직하게 표기됩니다.
 
-`kr-custom-tts` / `SCE-TTS` 는 **학습형**입니다. Google Colab(무료 GPU)에서
-자가 음성으로 학습한 모델 산출물을 받아 위 `--model` 로 경로를 지정하세요.
-(`src/tts_bmt/engines.py` 의 `all_engines(model_paths=...)` 참고)
+`kr-custom-tts` / `SCE-TTS` 는 데모에서 **공개 KSS 단일화자 ESPnet 사전학습 모델**을
+자동으로 사용합니다(학습 불필요). 본인 음성으로 바꾸려면 자가학습 산출물 경로를
+`--model kr_custom=<경로>` 로 주입하세요. (`src/tts_bmt/engines.py` 의
+`_EspnetKssEngine` / `all_engines(model_paths=...)` 참고)
 
-> 🧪 **Colab 학습 노트북:** [`notebooks/tts_bmt_colab.ipynb`](notebooks/tts_bmt_colab.ipynb)
+> 🧪 **Colab 노트북 (실음성 생성·게시):** [`notebooks/tts_bmt_colab.ipynb`](notebooks/tts_bmt_colab.ipynb)
 > [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/techgit01/tts-bmt-poc/blob/main/notebooks/tts_bmt_colab.ipynb)
-> 4종 설치/학습 → 모델 다운로드 → `model_path` 연결 → `./run.sh` 실측 흐름을 셀 단위로 안내합니다.
-> (추론형 2종은 로컬 `./setup.sh --full` 로도 설치 가능, 학습형 2종만 Colab 필요)
+> 셀 하나로 Supertonic + ESPnet KSS(kr-custom JETS / SCE VITS) 실음성을 생성 → 미리듣기 →
+> `docs/` 커밋·푸시까지 안내합니다. (자가학습은 선택 셀로 분리)
 >
 > 📘 **Colab 무료 계정 생성/시작 가이드:** [`notebooks/google-colab-setup.md`](notebooks/google-colab-setup.md)
 
@@ -113,7 +120,7 @@ uv run tts-bmt run --model kr_custom=models/kr_exp --model sce_tts=models/sce_ex
 **데모 음성은 Colab 에서 만들고, CI 는 커밋된 `docs/` 를 그대로 게시합니다.**
 
 1. **데모 음성 생성** — [`notebooks/tts_bmt_colab.ipynb`](notebooks/tts_bmt_colab.ipynb) 에서
-   Supertonic 실측으로 `docs/audio` + `docs/results` (진짜 한국어 음성) 생성 후 커밋
+   Supertonic + ESPnet KSS(3종) 실측으로 `docs/audio` + `docs/results` 생성 후 커밋
 2. **Settings -> Pages -> Source: GitHub Actions** (한 번만 설정)
 3. `main` 푸시 시 `.github/workflows/deploy.yml` 이 **재생성 없이 커밋된 `docs/` 를 Pages 로 게시**
 4. 배포 URL: https://techgit01.github.io/tts-bmt-poc/
@@ -152,16 +159,16 @@ tts-bmt-poc/
 ├─ run.sh                  # 벤치마크 실행 (+ --serve 데모 미리보기)
 ├─ deploy.sh               # 소스 커밋 → main 푸시 (Actions 가 빌드·배포)
 ├─ notebooks/
-│  ├─ tts_bmt_colab.ipynb       # Colab 학습 노트북 (학습형 2종)
+│  ├─ tts_bmt_colab.ipynb       # Colab 실음성 생성·게시 노트북 (사전학습 KSS)
 │  └─ google-colab-setup.md     # Colab 무료 계정 생성/시작 가이드
-├─ pyproject.toml          # uv 프로젝트 (requires-python >=3.12)
+├─ pyproject.toml          # uv 프로젝트 (extras: supertonic/piper/espnet, piper⊥espnet)
 ├─ .python-version         # 개발 환경 3.12 고정
 ├─ src/tts_bmt/
-│  ├─ engines.py           # 공통 어댑터 + 4종 + 시뮬레이션 폴백
+│  ├─ engines.py           # 공통 어댑터 + Supertonic/piper/ESPnet KSS + 시뮬레이션 폴백
 │  ├─ benchmark.py         # 측정 실행 -> JSON/오디오 산출
 │  └─ cli.py               # tts-bmt run [--model KEY=PATH] | list
 ├─ docs/                   # <- GitHub Pages 서빙 루트
-│  ├─ index.html           # 정적 데모 (오디오 재생 + 파형 + 비교)  [소스]
+│  ├─ index.html           # 정적 데모 (재생 + 파형 + 모드 표시 + 도움말 모달)  [소스]
 │  ├─ .nojekyll            # Jekyll 건너뜀                          [소스]
 │  ├─ results/benchmark.json   # Colab 실측 결과 (커밋, CI 가 그대로 게시)
 │  └─ audio/<engine>/*.wav     # Colab 실측 음성 (커밋, CI 가 그대로 게시)
@@ -170,8 +177,12 @@ tts-bmt-poc/
 
 ## 한계
 
+- **piper-plus 는 현재 시뮬레이션**입니다. 공개된 유일한 한국어 piper 모델(KSS)이
+  piper-plus 가 지원하지 않는 `pygoruut` phonemizer를 써서 깔끔하게 로드되지 않습니다.
+  (강제 매핑 시 발음기호 누락으로 품질 보장 불가)
+- kr-custom-tts / SCE-TTS 데모 음성은 **본인 음성이 아니라 공개 KSS 단일화자**
+  사전학습 모델입니다. 원 프로젝트는 자가학습이 전제이며, 본인 음성은 선택 셀로 학습/교체합니다.
 - 음소 단위 "말 꼬리 음정/감정 톤" 정밀 제어는 오픈소스 TTS 전반의 약점입니다.
-  정형 알림 문장은 문장부호 기반 억양과 piper-plus 운율 주입으로 커버되지만,
   자유로운 감정 연기는 상용(SSML) 영역에 가깝습니다.
 - 시뮬레이션 모드 수치는 파이프라인 검증용이며 실제 음질이 아닙니다.
 

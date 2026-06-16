@@ -1,6 +1,7 @@
 # Google Colab 무료 계정 생성 & 시작 가이드
 
-이 프로젝트의 **학습형 엔진**(kr-custom-tts, SCE-TTS)은 무료 GPU가 필요해 Google Colab에서 돌립니다.
+이 프로젝트의 **실음성 생성**(Supertonic + ESPnet KSS 사전학습)은 무겁기 때문에
+Google Colab에서 돌려 결과만 저장소에 커밋합니다. (선택 사항인 자가학습엔 GPU 필요)
 Colab은 **별도 가입 절차 없이 Google 계정만 있으면** 무료로 사용할 수 있습니다.
 
 ---
@@ -74,10 +75,19 @@ Colab 전용 가입은 없습니다. **Google 계정 = Colab 계정** 입니다.
 
 ---
 
-## 학습이 끝나면
+## 데모 음성 만들기 (기본: 학습 불필요)
 
-1. 학습된 모델 파일을 **다운로드** (노트북 6번 셀 `files.download(...)`)
-2. 로컬 저장소에 두고 `src/tts_bmt/engines.py` 의 해당 엔진 `model_path` 로 연결
-3. `./run.sh` 로 실측(real) 모드 측정 → `./deploy.sh` 로 배포
+이 프로젝트의 데모는 **사전학습 모델**로 실음성을 냅니다 — 학습이 필요 없습니다.
+[`tts_bmt_colab.ipynb`](tts_bmt_colab.ipynb) 에서:
 
-자세한 학습 절차는 [`tts_bmt_colab.ipynb`](tts_bmt_colab.ipynb) 와 각 엔진 업스트림 가이드를 따르세요.
+1. **1번 셀(클론)** → **2번 셀** 실행 — Supertonic + ESPnet KSS(kr-custom JETS / SCE VITS)
+   3종의 실제 한국어 음성을 생성하고 미리듣기
+2. **2-1 셀** 에 GitHub 토큰을 넣고 실행 → `docs/` 커밋·푸시 → Actions가 배포
+   (토큰이 없으면 `docs_audio.zip` 다운로드 → 로컬에서 커밋)
+
+## (선택) 본인 음성으로 파인튜닝
+
+본인/브랜드 음성으로 바꾸려면 각 엔진을 파인튜닝합니다(음성 wav + 전사 + GPU 필요).
+노트북의 **(선택) 학습 셀**과 각 엔진 업스트림 가이드를 따르고, 학습 산출물은
+`tts-bmt run --model <engine>=<경로>` 로 연결합니다.
+(엔진별 요약은 라이브 데모 우측 상단 **`? 도움말` → 엔진별 파인튜닝** 참고)
