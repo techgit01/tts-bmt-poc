@@ -91,6 +91,8 @@ uv sync --extra piper
 > [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/techgit01/tts-bmt-poc/blob/main/notebooks/tts_bmt_colab.ipynb)
 > 4종 설치/학습 → 모델 다운로드 → `model_path` 연결 → `./run.sh` 실측 흐름을 셀 단위로 안내합니다.
 > (추론형 2종은 로컬 `./setup.sh --full` 로도 설치 가능, 학습형 2종만 Colab 필요)
+>
+> 📘 **Colab 무료 계정 생성/시작 가이드:** [`notebooks/google-colab-setup.md`](notebooks/google-colab-setup.md)
 
 ---
 
@@ -136,6 +138,9 @@ tts-bmt-poc/
 ├─ setup.sh                # 새 PC 환경 준비 (uv 설치 + sync)
 ├─ run.sh                  # 벤치마크 실행 (+ --serve 데모 미리보기)
 ├─ deploy.sh               # docs/ 갱신 → 커밋 → main 푸시 (Pages 자동 배포)
+├─ notebooks/
+│  ├─ tts_bmt_colab.ipynb       # Colab 학습 노트북 (학습형 2종)
+│  └─ google-colab-setup.md     # Colab 무료 계정 생성/시작 가이드
 ├─ pyproject.toml          # uv 프로젝트 (requires-python >=3.12,<3.13)
 ├─ .python-version         # 3.12 고정
 ├─ src/tts_bmt/
