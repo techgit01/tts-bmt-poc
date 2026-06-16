@@ -15,12 +15,16 @@
 
 ## 비교 대상 4종
 
-| # | 엔진 | 개발 | 라이선스 | 한국어 | 비고 |
-|---|------|------|---------|--------|------|
-| 1 | **Supertonic 3** | Supertone (KR) | MIT(code) + OpenRAIL-M(model) | 기본 지원 | 온디바이스 ~99M ONNX, CPU 실시간 |
-| 2 | **piper-plus** | ayutaz (JP) | MIT | 8개 언어 중 포함 | VITS, 운율 주입, 음성 클로닝 |
-| 3 | **kr-custom-tts** | seastar105 (KR) | MIT | 전용 | ESPnet, Colab 자가학습 |
-| 4 | **SCE-TTS** | yunho0130 (KR) | MIT | 전용 | Tacotron2, Colab 가이드 |
+| # | 엔진 | 개발 | 라이선스 | 한국어 | 데모 음성 | 비고 |
+|---|------|------|---------|--------|-----------|------|
+| 1 | **Supertonic 3** | Supertone (KR) | MIT(code) + OpenRAIL-M(model) | 기본 지원 | ✅ real | 온디바이스 ~99M ONNX, CPU 실시간 |
+| 2 | **piper-plus** | ayutaz (JP) | MIT | 8개 언어 중 포함 | ⏳ simulated | VITS. 깔끔한 한국어 onnx 모델 부재(KSS는 pygoruut 의존) |
+| 3 | **kr-custom-tts** | seastar105 (KR) | MIT | 전용 | ✅ real | ESPnet. 데모는 **KSS 사전학습 JETS** (자가학습 시 본인 음성) |
+| 4 | **SCE-TTS** | yunho0130 (KR) | MIT | 전용 | ✅ real | 원본 Tacotron2 자가학습. 데모는 **KSS 사전학습 VITS(ESPnet)** |
+
+> **데모 음성 출처**: Supertonic 은 pip 추론, kr-custom-tts/SCE-TTS 는 공개 **KSS 단일화자**
+> ESPnet 사전학습 모델로 실음성을 냅니다(학습 불필요). piper-plus 는 호환 한국어 모델이
+> 없어 시뮬레이션 톤으로 표시됩니다. 실제 생성·게시는 [Colab 노트북](notebooks/tts_bmt_colab.ipynb)에서.
 
 > **라이선스 주의**
 > - **MeloTTS는 의도적으로 제외**했습니다. MIT지만 MyShell.ai(중국 계열) 개발이라 "중국 제외" 기준에 해당합니다.
@@ -77,15 +81,15 @@ cd docs && python3 -m http.server 8000
 모델 산출물 경로를 주면 실측(real) 모드로 측정됩니다.
 
 ```bash
-# 추론형 — 패키지 설치
+# Supertonic — pip 추론
 uv sync --extra supertonic
-uv sync --extra piper           # 한국어 음성 모델(.onnx) 별도 준비 필요
 
-# 모델 경로를 주입해 실측 (학습형/모델 의존 엔진)
-uv run tts-bmt run \
-  --model piper_plus=models/ko.onnx \
-  --model kr_custom=models/kr.pth \
-  --model sce_tts=models/sce.pt
+# kr-custom-tts / SCE-TTS — ESPnet + KSS 사전학습 (Colab 권장: 무거움)
+uv sync --extra espnet          # espnet 과 piper 는 공존 불가(상호 배타 extra)
+uv run tts-bmt run              # kr_custom=JETS, sce_tts=VITS 자동 사용
+
+# (선택) 자가학습 모델로 교체 — 본인 음성 산출물 경로 주입
+uv run tts-bmt run --model kr_custom=models/kr_exp --model sce_tts=models/sce_exp
 ```
 
 > `mode` 는 엔진 설치 여부가 아니라 **실제로 합성된 결과**로 판정됩니다.

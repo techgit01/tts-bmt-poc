@@ -18,11 +18,19 @@ dependencies = [
 # soundfile 은 실제 합성 결과의 길이 측정에 쓰이므로 각 추론 엔진과 함께 설치.
 supertonic = ["supertonic>=1.3.1", "soundfile>=0.12"]
 piper = ["piper-plus>=1.12.0", "soundfile>=0.12"]
-# kr-custom-tts / sce-tts 는 학습형이라 별도 노트북에서 모델 산출물(.onnx/.pt)만 받아옴
+# kr-custom-tts / SCE-TTS: ESPnet + KSS 사전학습 모델로 실음성 (Colab 권장 — 무거움)
+espnet = ["espnet>=202412", "espnet_model_zoo>=0.1.7", "soundfile>=0.12"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
 [project.scripts]
 tts-bmt = "tts_bmt.cli:main"
+
+# piper-plus 와 espnet 은 pypinyin 버전이 충돌해 한 환경에 공존 불가.
+# 서로 다른 엔진을 쓸 때 따로 설치하므로 상호 배타 extra 로 선언.
+[tool.uv]
+conflicts = [
+    [{ extra = "piper" }, { extra = "espnet" }],
+]
 
 [build-system]
 requires = ["hatchling"]

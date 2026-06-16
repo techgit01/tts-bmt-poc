@@ -227,56 +227,112 @@ class PiperPlusEngine(Engine):
 
 
 # ----------------------------------------------------------------------
-# 3. kr-custom-tts (한국, seastar105) — ESPnet 기반 학습형
+# ESPnet KSS 사전학습 기반 공통 엔진
+#   - 데모는 KSS(공개 한국어 단일화자) 사전학습 모델로 실음성을 낸다.
+#   - 자가학습 모델 경로(model_path)를 주면 그쪽을 우선 사용한다.
+#   - espnet 미설치/추론 실패 시 시뮬레이션으로 정직하게 폴백.
 # ----------------------------------------------------------------------
-class KrCustomEngine(Engine):
+class _EspnetKssEngine(Engine):
     target_sr = 22050
+    espnet_model_id: str = ""   # 서브클래스가 지정 (HuggingFace 모델 id)
+
+    def __init__(self, model_path: str | None = None,
+                 espnet_model: str | None = None) -> None:
+        self._model_path = model_path
+        self._espnet_model = espnet_model or self.espnet_model_id
+        self._t2s = None
+
+    def available(self) -> bool:
+        try:
+            import espnet2  # noqa: F401
+        except Exception:
+            return False
+        # 로컬 자가학습 모델 또는 사전학습 모델 id 중 하나는 있어야 함
+        if self._model_path:
+            return Path(self._model_path).exists()
+        return bool(self._espnet_model)
+
+    def _load(self):
+        from espnet2.bin.tts_inference import Text2Speech
+        # 자가학습 산출물(로컬 경로)이 있으면 우선, 없으면 KSS 사전학습 모델 id.
+        # from_pretrained 의 첫 인자(model_tag)는 HF id 또는 로컬 모델 경로 모두 허용.
+        tag = self._model_path if (self._model_path and Path(self._model_path).exists()) \
+            else self._espnet_model
+        return Text2Speech.from_pretrained(tag)
+
+    def synthesize(self, text: str, out_path: Path) -> Synthesis:
+        if not self.available():
+            return self._simulate(text, out_path)
+        try:
+            import soundfile as sf
+            if self._t2s is None:
+                self._t2s = self._load()
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            start = time.perf_counter()
+            wav = self._t2s(text)["wav"]
+            synth_sec = time.perf_counter() - start
+
+            sr = int(getattr(self._t2s, "fs", self.target_sr))
+            audio = wav.view(-1).cpu().numpy()
+            sf.write(str(out_path), audio, sr)
+            duration = len(audio) / sr if sr else 0.0
+
+            return Synthesis(
+                engine_key=self.meta.key,
+                text=text,
+                wav_path=out_path,
+                sample_rate=sr,
+                duration_sec=duration,
+                synth_sec=synth_sec,
+                simulated=False,
+                extra={"espnet_model": self._espnet_model},
+            )
+        except Exception as e:
+            print(f"[{self.meta.key}] 실측 실패 → 시뮬레이션 폴백: {e}")
+            return self._simulate(text, out_path)
+
+
+# ----------------------------------------------------------------------
+# 3. kr-custom-tts (한국, seastar105) — ESPnet
+#    데모: KSS 사전학습 JETS / 자가학습 시 본인 음성 모델로 교체
+# ----------------------------------------------------------------------
+class KrCustomEngine(_EspnetKssEngine):
+    target_sr = 22050
+    espnet_model_id = (
+        "imdanboy/kss_tts_train_jets_raw_phn_korean_cleaner_"
+        "korean_jaso_train.total_count.ave"
+    )
     meta = EngineMeta(
         key="kr_custom",
         name="kr-custom-tts",
         origin="seastar105 (🇰🇷 한국)",
-        license="MIT",
-        korean="한국어 전용 (ESPnet, 자가 음성 학습)",
+        license="MIT(code) / KSS 데이터셋 별도",
+        korean="한국어 전용 (ESPnet)",
         homepage="https://github.com/seastar105/kr-custom-tts",
-        notes="Google Colab에서 자가 음성으로 학습 → 모델 산출물을 받아 추론. "
-              "음성 클로닝 미지원(학습형).",
+        notes="ESPnet 기반. 데모는 KSS 공개 화자 사전학습(JETS) 사용. "
+              "자가학습 시 본인 음성 모델 경로로 교체 가능.",
     )
 
-    def __init__(self, model_path: str | None = None) -> None:
-        self._model_path = model_path
-
-    def available(self) -> bool:
-        return bool(self._model_path and Path(self._model_path).exists())
-
-    def synthesize(self, text: str, out_path: Path) -> Synthesis:
-        # ESPnet 추론은 환경 의존성이 커서 POC에서는 모델 산출물 경로가
-        # 주어졌을 때만 실제 추론 시도. 그 외엔 시뮬레이션.
-        return self._simulate(text, out_path)
-
 
 # ----------------------------------------------------------------------
-# 4. SCE-TTS (한국, yunho0130) — Tacotron2 + Vocoder 학습형
+# 4. SCE-TTS (한국, yunho0130) — ESPnet
+#    데모: KSS 사전학습 VITS / 원 가이드는 자가학습 Tacotron2
 # ----------------------------------------------------------------------
-class SceTtsEngine(Engine):
+class SceTtsEngine(_EspnetKssEngine):
     target_sr = 22050
+    espnet_model_id = (
+        "songhee/kss_tts_train_full_band_vits_raw_phn_korean_cleaner_korean_jaso"
+    )
     meta = EngineMeta(
         key="sce_tts",
         name="SCE-TTS",
         origin="yunho0130 (🇰🇷 한국)",
-        license="MIT",
-        korean="한국어 전용 (Tacotron2 + Vocoder)",
+        license="MIT(code) / KSS 데이터셋 별도",
+        korean="한국어 전용 (데모: ESPnet KSS VITS)",
         homepage="https://gist.github.com/yunho0130",
-        notes="Google Colab 가이드 제공. 자가 음성 커스터마이징. 학습형.",
+        notes="원 가이드는 자가학습 Tacotron2. 데모는 KSS 공개 화자 "
+              "사전학습(VITS, ESPnet)으로 실음성 제공.",
     )
-
-    def __init__(self, model_path: str | None = None) -> None:
-        self._model_path = model_path
-
-    def available(self) -> bool:
-        return bool(self._model_path and Path(self._model_path).exists())
-
-    def synthesize(self, text: str, out_path: Path) -> Synthesis:
-        return self._simulate(text, out_path)
 
 
 # ----------------------------------------------------------------------
