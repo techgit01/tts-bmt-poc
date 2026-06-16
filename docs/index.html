@@ -164,6 +164,12 @@
   .mode-tag.real { color: var(--signal); border-color: var(--signal-dk); }
   .card-origin { font-size: 12px; color: var(--kr); margin-top: 4px; }
   .card-lic { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
+  .card-data {
+    font-size: 11px; color: var(--ink); margin-top: 6px;
+    padding: 4px 8px; border-radius: 3px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 2px solid var(--signal-dk);
+  }
 
   .card-stats {
     display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
@@ -315,6 +321,19 @@
       <p>그 카드가 <span class="tag-sim">시뮬레이션</span> 이기 때문입니다. <span class="tag-real">실측</span>
          태그가 붙은 카드(▶)를 재생하면 실제 한국어 음성이 들립니다.</p>
 
+      <h3>학습 데이터셋</h3>
+      <p>각 카드의 데모 음성이 어떤 데이터로 학습됐는지(카드의 <b>데이터셋</b> 줄에도 표시):</p>
+      <ul>
+        <li><b>Supertonic</b> — Supertone <b>자체 데이터(비공개)</b>, 다국어. 데모는 내장 보이스 <code>F1</code>.</li>
+        <li><b>kr-custom-tts / SCE-TTS</b> — <b>KSS</b>(Korean Single Speaker, 여성 1인 ~12h, 12,853발화).
+            ESPnet 사전학습(JETS / VITS).</li>
+        <li><b>piper-plus</b> — 현재 시뮬레이션이라 <b>학습 데이터 없음</b>(합성 톤).</li>
+      </ul>
+      <p style="color:var(--amber)">⚠️ <b>KSS 는 CC BY-NC-SA 4.0 — 비상업용</b>입니다.
+         kr-custom·SCE 데모 음성은 <b>데모 용도</b>이며 <b>상업 배포 불가</b>. 상업적으로 쓰려면
+         본인/상업 가능 데이터로 파인튜닝하세요(아래 참고).
+         <a href="https://www.kaggle.com/datasets/bryanpark/korean-single-speaker-speech-dataset" target="_blank" rel="noopener">KSS</a></p>
+
       <h3>엔진별 파인튜닝(커스텀 음성)</h3>
       <p>본인/브랜드 음성으로 바꾸려면 각 엔진을 파인튜닝합니다. 공통 준비물:
          <b>음성 wav + 전사 텍스트</b>(보통 수십 분~수 시간 분량)와 <b>GPU</b>.
@@ -389,6 +408,14 @@
 
 <script>
 const DATA_URL = "results/benchmark.json";
+
+// benchmark.json 의 meta.dataset 가 없을 때(구버전) 쓰는 폴백
+const DATASET = {
+  supertonic: "Supertone 자체 데이터(비공개) · 다국어 · 데모 보이스 F1",
+  piper_plus: "— (현재 시뮬레이션: 합성 톤, 학습 데이터 없음)",
+  kr_custom:  "KSS (공개) · CC BY-NC-SA 4.0 비상업 · 여성 1인 ~12h · ESPnet JETS",
+  sce_tts:    "KSS (공개) · CC BY-NC-SA 4.0 비상업 · 여성 1인 ~12h · ESPnet VITS",
+};
 
 function el(tag, cls, html) {
   const e = document.createElement(tag);
@@ -499,6 +526,8 @@ async function main() {
     head.appendChild(title);
     head.appendChild(el("div","card-origin", b.meta.origin));
     head.appendChild(el("div","card-lic", b.meta.license + " · " + b.meta.korean));
+    const dataset = b.meta.dataset || DATASET[b.meta.key] || "";
+    if (dataset) head.appendChild(el("div","card-data", "데이터셋 · " + dataset));
     card.appendChild(head);
 
     // 시뮬레이션 카드는 실음성이 아님을 명확히 안내

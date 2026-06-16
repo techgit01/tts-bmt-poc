@@ -30,6 +30,7 @@ class EngineMeta:
     korean: str          # 한국어 지원 방식
     homepage: str
     notes: str = ""
+    dataset: str = ""    # 데모 음성이 사용한 학습 데이터셋(라이선스 포함)
 
 
 # ----------------------------------------------------------------------
@@ -137,6 +138,7 @@ class SupertonicEngine(Engine):
         homepage="https://github.com/supertone-inc/supertonic",
         notes="온디바이스 ~99M ONNX, CPU 실시간, 표현 태그 지원. "
               "모델은 OpenRAIL-M(사용제한+저작자표시) — MIT와 다름.",
+        dataset="Supertone 자체 데이터(비공개) · 다국어 · 데모 보이스 F1",
     )
 
     def __init__(self, voice_name: str = "F1") -> None:
@@ -200,6 +202,7 @@ class PiperPlusEngine(Engine):
         homepage="https://github.com/ayutaz/piper-plus",
         notes="VITS 기반, --prosody-dim 운율 주입, CPU 실시간, "
               "음성 클로닝(Speaker Encoder). 한국어 음성모델 별도 학습/준비 필요.",
+        dataset="— (현재 시뮬레이션: 합성 톤, 학습 데이터 없음)",
     )
 
     def __init__(self, model_path: str | None = None) -> None:
@@ -323,6 +326,7 @@ class KrCustomEngine(_EspnetKssEngine):
         homepage="https://github.com/seastar105/kr-custom-tts",
         notes="ESPnet 기반. 데모는 KSS 공개 화자 사전학습(JETS) 사용. "
               "자가학습 시 본인 음성 모델 경로로 교체 가능.",
+        dataset="KSS (공개) · CC BY-NC-SA 4.0 비상업 · 여성 1인 ~12h · ESPnet JETS",
     )
 
 
@@ -347,6 +351,7 @@ class SceTtsEngine(_EspnetKssEngine):
         homepage="https://gist.github.com/yunho0130",
         notes="원 가이드는 자가학습 Tacotron2. 데모는 KSS 공개 화자 "
               "사전학습(VITS, ESPnet)으로 실음성 제공.",
+        dataset="KSS (공개) · CC BY-NC-SA 4.0 비상업 · 여성 1인 ~12h · ESPnet VITS",
     )
 
 

@@ -27,9 +27,15 @@ piper-plus 만 시뮬레이션 톤(호환 한국어 모델 부재). 데모 우�
 | 3 | **kr-custom-tts** | seastar105 (KR) | MIT | 전용 | ✅ real | ESPnet. 데모는 **KSS 사전학습 JETS** (자가학습 시 본인 음성) |
 | 4 | **SCE-TTS** | yunho0130 (KR) | MIT | 전용 | ✅ real | 원본 Tacotron2 자가학습. 데모는 **KSS 사전학습 VITS(ESPnet)** |
 
-> **데모 음성 출처**: Supertonic 은 pip 추론, kr-custom-tts/SCE-TTS 는 공개 **KSS 단일화자**
-> ESPnet 사전학습 모델로 실음성을 냅니다(학습 불필요). piper-plus 는 호환 한국어 모델이
-> 없어 시뮬레이션 톤으로 표시됩니다. 실제 생성·게시는 [Colab 노트북](notebooks/tts_bmt_colab.ipynb)에서.
+> **데모 음성 출처/데이터셋**:
+> - **Supertonic** — Supertone 자체 데이터(비공개), 다국어, 데모 보이스 `F1`
+> - **kr-custom-tts / SCE-TTS** — **KSS**(Korean Single Speaker, 여성 1인 ~12h) ESPnet 사전학습(JETS / VITS)
+> - **piper-plus** — 현재 시뮬레이션(합성 톤, 학습 데이터 없음)
+>
+> ⚠️ **KSS 는 CC BY-NC-SA 4.0 — 비상업용**입니다. kr-custom·SCE 데모 음성은 **데모 용도**이며
+> **상업 배포 불가**입니다. 상업적으로 쓰려면 본인/상업 가능 데이터로 파인튜닝하세요.
+> (엔진 코드는 MIT지만 *데이터셋·모델* 라이선스는 별개) · 실제 생성·게시는
+> [Colab 노트북](notebooks/tts_bmt_colab.ipynb)에서.
 
 > **라이선스 주의**
 > - **MeloTTS는 의도적으로 제외**했습니다. MIT지만 MyShell.ai(중국 계열) 개발이라 "중국 제외" 기준에 해당합니다.
@@ -189,6 +195,8 @@ tts-bmt-poc/
 ## 라이선스
 - **이 저장소의 소스 코드/데모 스캐폴딩: MIT** ([LICENSE](LICENSE)).
 - **각 TTS 엔진/모델**의 라이선스는 위 표 및 원 저장소를 따릅니다.
-- ⚠️ **생성된 오디오 산출물**(`docs/audio/*.wav`)은 MIT가 아니라 **이를 만든 엔진/모델의
-  라이선스**를 따릅니다. 특히 **Supertonic 모델은 OpenRAIL-M**(사용 기반 제한 + 저작자
-  표시 의무)이므로, 그 출력 오디오를 배포·상업 이용하기 전 원문 약관을 검토하세요.
+- ⚠️ **생성된 오디오 산출물**(`docs/audio/*.wav`)은 MIT가 아니라 **이를 만든 엔진/모델/
+  데이터셋의 라이선스**를 따릅니다:
+  - **Supertonic 모델: OpenRAIL-M** (사용 기반 제한 + 저작자 표시 의무)
+  - **kr-custom-tts / SCE-TTS 데모 음성: KSS = CC BY-NC-SA 4.0 (비상업)** → **데모 한정, 상업 배포 불가**
+  - 상업 이용 전 각 원문 약관을 검토하고, 필요하면 상업 가능 데이터로 파인튜닝하세요.
