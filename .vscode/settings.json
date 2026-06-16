@@ -1,0 +1,7 @@
+{
+  // 이 프로젝트는 uv 로 패키지를 관리합니다(.venv 에 pip 미포함).
+  // Python Environments 확장이 'pip list' 대신 uv 를 쓰도록 해
+  // "No module named pip" 로그 에러를 방지합니다.
+  "python-envs.alwaysUseUv": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
+}
