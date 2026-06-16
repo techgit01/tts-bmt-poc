@@ -96,6 +96,13 @@
       아래 3단계로 연결하면 이 화면 안에서 바로 사용할 수 있습니다.
     </p>
 
+    <div class="note" style="border-left-color:var(--signal)">
+      🔊 <b>목소리 안내</b> — Supertonic 내장 10종 화자입니다.
+      <b>F1~F5 = 여성</b> 5종, <b>M1~M5 = 남성</b> 5종.
+      각 번호는 서로 다른 화자(목소리)이며 <b>공식 캐릭터 설명(나이·톤)은 제공되지 않습니다</b> →
+      같은 문장을 여러 목소리로 생성해 비교하고 마음에 드는 걸 고르세요.
+    </div>
+
     <h2>1 · 생성기 실행 (Colab)</h2>
     <div class="steps">
       <div class="step"><div class="n">1</div><div class="t">
@@ -110,7 +117,9 @@
         실행하면 출력에 <code>https://xxxx.gradio.live</code> 형태의 <b>공개 URL</b>이 뜹니다.
       </div></div>
       <div class="step"><div class="n">3</div><div class="t">
-        그 URL을 아래에 붙여넣고 <b>연결</b>하면 이 화면에 생성기가 임베드됩니다.
+        셀이 출력하는 <b>“자동 연결 링크”</b>(<code>generate.html?u=…</code>)를 클릭하면
+        이 화면에 생성기가 <b>자동으로 연결</b>됩니다.
+        (또는 <code>gradio.live</code> URL을 아래에 직접 붙여넣어도 됩니다.)
       </div></div>
     </div>
 
@@ -166,8 +175,9 @@
     $hint.textContent = "붙여넣은 URL은 이 브라우저에만 저장됩니다(localStorage).";
   });
 
-  // 저장된 URL 자동 복구
-  const saved = localStorage.getItem(KEY);
+  // 자동 연결: URL 쿼리(?u=…)가 있으면 우선, 없으면 저장된 값 복구
+  const fromQuery = new URLSearchParams(location.search).get("u");
+  const saved = fromQuery || localStorage.getItem(KEY);
   if (saved) { $url.value = saved; connect(saved); }
 </script>
 </body>
