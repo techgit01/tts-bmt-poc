@@ -234,7 +234,10 @@ class PiperPlusEngine(Engine):
 # ----------------------------------------------------------------------
 class _EspnetKssEngine(Engine):
     target_sr = 22050
-    espnet_model_id: str = ""   # 서브클래스가 지정 (HuggingFace 모델 id)
+    espnet_model_id: str = ""    # 서브클래스가 지정 (HuggingFace 모델 id)
+    # meta.yaml 이 없는 저장소는 config/model 파일을 직접 지정해 로드한다.
+    espnet_config_file: str = ""
+    espnet_model_file: str = ""
 
     def __init__(self, model_path: str | None = None,
                  espnet_model: str | None = None) -> None:
@@ -254,11 +257,17 @@ class _EspnetKssEngine(Engine):
 
     def _load(self):
         from espnet2.bin.tts_inference import Text2Speech
-        # 자가학습 산출물(로컬 경로)이 있으면 우선, 없으면 KSS 사전학습 모델 id.
-        # from_pretrained 의 첫 인자(model_tag)는 HF id 또는 로컬 모델 경로 모두 허용.
-        tag = self._model_path if (self._model_path and Path(self._model_path).exists()) \
-            else self._espnet_model
-        return Text2Speech.from_pretrained(tag)
+        # 1) 로컬 자가학습 모델 경로 우선
+        if self._model_path and Path(self._model_path).exists():
+            return Text2Speech.from_pretrained(self._model_path)
+        # 2) meta.yaml 없는 저장소: config.yaml + 체크포인트를 직접 받아 로드
+        if self.espnet_config_file and self.espnet_model_file:
+            from huggingface_hub import hf_hub_download
+            cfg = hf_hub_download(self._espnet_model, self.espnet_config_file)
+            mdl = hf_hub_download(self._espnet_model, self.espnet_model_file)
+            return Text2Speech(train_config=cfg, model_file=mdl)
+        # 3) 표준 패키징(meta.yaml 포함) 모델: from_pretrained
+        return Text2Speech.from_pretrained(self._espnet_model)
 
     def synthesize(self, text: str, out_path: Path) -> Synthesis:
         if not self.available():
@@ -323,6 +332,9 @@ class SceTtsEngine(_EspnetKssEngine):
     espnet_model_id = (
         "songhee/kss_tts_train_full_band_vits_raw_phn_korean_cleaner_korean_jaso"
     )
+    # 이 저장소엔 meta.yaml 이 없어 config/checkpoint 를 직접 지정해 로드한다.
+    espnet_config_file = "config.yaml"
+    espnet_model_file = "1000epoch.pth"
     meta = EngineMeta(
         key="sce_tts",
         name="SCE-TTS",
