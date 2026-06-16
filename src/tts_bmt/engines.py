@@ -260,12 +260,15 @@ class _EspnetKssEngine(Engine):
         # 1) 로컬 자가학습 모델 경로 우선
         if self._model_path and Path(self._model_path).exists():
             return Text2Speech.from_pretrained(self._model_path)
-        # 2) meta.yaml 없는 저장소: config.yaml + 체크포인트를 직접 받아 로드
+        # 2) meta.yaml 없는 저장소: 저장소 전체를 받아(동반 파일 tokens.txt 등 포함)
+        #    config.yaml + 체크포인트를 직접 지정해 로드
         if self.espnet_config_file and self.espnet_model_file:
-            from huggingface_hub import hf_hub_download
-            cfg = hf_hub_download(self._espnet_model, self.espnet_config_file)
-            mdl = hf_hub_download(self._espnet_model, self.espnet_model_file)
-            return Text2Speech(train_config=cfg, model_file=mdl)
+            from huggingface_hub import snapshot_download
+            d = Path(snapshot_download(self._espnet_model))
+            return Text2Speech(
+                train_config=str(d / self.espnet_config_file),
+                model_file=str(d / self.espnet_model_file),
+            )
         # 3) 표준 패키징(meta.yaml 포함) 모델: from_pretrained
         return Text2Speech.from_pretrained(self._espnet_model)
 
