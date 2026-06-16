@@ -3,6 +3,9 @@
 > 중국 개발 엔진 제외 · 상업용 무료(MIT 계열) · 한국어 지원
 > **uv + Python 3.12** 로 로컬 측정 → **GitHub Pages** 정적 데모로 결과/오디오 공개
 
+🔊 **라이브 데모:** https://techgit01.github.io/tts-bmt-poc/
+📦 **저장소:** https://github.com/techgit01/tts-bmt-poc
+
 카드사 FDS(부정거래 탐지) 음성 상담을 가정한 한국어 문장으로, 오픈소스 TTS 4종을
 같은 조건에서 합성하고 속도 지표를 측정합니다. 무거운 추론은 로컬에서 미리 돌려
 오디오(`.wav`)와 측정 결과(`benchmark.json`)를 만들고, GitHub Pages에는 그 **정적
@@ -28,24 +31,36 @@
 
 ## 빠른 시작
 
-### 1) uv 설치
+### 가장 빠른 길 — 스크립트 (새 PC 그대로 OK)
+```bash
+git clone https://github.com/techgit01/tts-bmt-poc.git
+cd tts-bmt-poc
+./setup.sh            # uv 자동 설치 + Python 3.12 고정 + 의존성 설치
+./run.sh --serve      # 벤치마크 실행 후 http://localhost:8000 로 데모 미리보기
+```
+> `./setup.sh --full` 은 실측 엔진(supertonic, piper)까지 설치합니다.
+> `./run.sh --list` 는 엔진/설치 상태만 출력합니다.
+
+### 또는 수동으로
+
+#### 1) uv 설치
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-### 2) 프로젝트 준비 (Python 3.12 LTS 고정)
+#### 2) 프로젝트 준비 (Python 3.12 LTS 고정)
 ```bash
 uv python pin 3.12     # .python-version 에 3.12 기록
 uv sync                # 코어 의존성만 설치 (가벼움)
 ```
 
-### 3) 벤치마크 실행
+#### 3) 벤치마크 실행
 ```bash
 uv run tts-bmt list    # 4개 엔진과 설치 상태 확인
 uv run tts-bmt run     # 측정 -> docs/results/benchmark.json + docs/audio/*.wav
 ```
 
-### 4) 로컬에서 데모 미리보기
+#### 4) 로컬에서 데모 미리보기
 ```bash
 cd docs && python3 -m http.server 8000
 # 브라우저에서 http://localhost:8000
@@ -81,7 +96,7 @@ uv sync --extra piper
 2. **Settings -> Pages -> Source: GitHub Actions** 선택
 3. `main` 브랜치 푸시 시 `.github/workflows/deploy.yml` 이
    `uv run tts-bmt run` 실행 -> `docs/` 산출물 갱신 -> Pages 배포
-4. 배포 URL: `https://<사용자명>.github.io/<저장소명>/`
+4. 배포 URL: https://techgit01.github.io/tts-bmt-poc/
 
 ### B. 수동 — 정적 파일만
 1. 로컬에서 `uv run tts-bmt run` 으로 `docs/` 채우기
@@ -109,6 +124,8 @@ FDS 상담 시 필요한 억양 변화를 포함합니다. (`src/tts_bmt/benchma
 
 ```
 tts-bmt-poc/
+├─ setup.sh                # 새 PC 환경 준비 (uv 설치 + sync)
+├─ run.sh                  # 벤치마크 실행 (+ --serve 데모 미리보기)
 ├─ pyproject.toml          # uv 프로젝트 (requires-python >=3.12,<3.13)
 ├─ .python-version         # 3.12 고정
 ├─ src/tts_bmt/
