@@ -13,4 +13,9 @@ build/
 *.ckpt
 models/
 
-# 주의: docs/audio/*.wav 는 데모에 필요하므로 커밋함 (무시하지 않음)
+# 생성물(벤치마크 산출물)은 커밋하지 않는다 — CI(.github/workflows/deploy.yml)가
+# 매 푸시마다 'uv run tts-bmt run' 으로 재생성해 Pages 로 배포한다.
+# (커밋하면 비결정적 측정치 때문에 저장소와 CI 출력이 영구히 divergence)
+# 로컬 미리보기는 './run.sh --serve' 가 같은 산출물을 그때그때 생성한다.
+docs/results/
+docs/audio/

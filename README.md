@@ -73,19 +73,27 @@ cd docs && python3 -m http.server 8000
 
 ## 실측 모드 (실제 음질 비교)
 
-각 엔진을 설치하면 어댑터가 자동으로 실측(real) 모드로 전환됩니다.
+추론형 엔진은 패키지를 설치하고, 모델 의존 엔진은 `--model KEY=PATH` 로
+모델 산출물 경로를 주면 실측(real) 모드로 측정됩니다.
 
 ```bash
-# Supertonic (PyPI 제공)
+# 추론형 — 패키지 설치
 uv sync --extra supertonic
+uv sync --extra piper           # 한국어 음성 모델(.onnx) 별도 준비 필요
 
-# piper-plus (PyPI 제공) — 한국어 음성 모델(.onnx) 별도 준비 필요
-uv sync --extra piper
+# 모델 경로를 주입해 실측 (학습형/모델 의존 엔진)
+uv run tts-bmt run \
+  --model piper_plus=models/ko.onnx \
+  --model kr_custom=models/kr.pth \
+  --model sce_tts=models/sce.pt
 ```
 
+> `mode` 는 엔진 설치 여부가 아니라 **실제로 합성된 결과**로 판정됩니다.
+> 엔진이 있어도 실제 합성이 아직 폴백(시뮬레이션)이면 `simulated` 로 정직하게 표기됩니다.
+
 `kr-custom-tts` / `SCE-TTS` 는 **학습형**입니다. Google Colab(무료 GPU)에서
-자가 음성으로 학습한 모델 산출물을 받아 어댑터에 경로를 지정하세요.
-(`src/tts_bmt/engines.py` 의 각 엔진 `model_path` 참고)
+자가 음성으로 학습한 모델 산출물을 받아 위 `--model` 로 경로를 지정하세요.
+(`src/tts_bmt/engines.py` 의 `all_engines(model_paths=...)` 참고)
 
 > 🧪 **Colab 학습 노트북:** [`notebooks/tts_bmt_colab.ipynb`](notebooks/tts_bmt_colab.ipynb)
 > [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/techgit01/tts-bmt-poc/blob/main/notebooks/tts_bmt_colab.ipynb)
@@ -98,23 +106,24 @@ uv sync --extra piper
 
 ## GitHub 배포 -> 온라인 확인
 
-### A. 자동 (권장) — GitHub Actions
-1. 이 저장소를 GitHub에 푸시
-2. **Settings -> Pages -> Source: GitHub Actions** 선택
-3. `main` 브랜치 푸시 시 `.github/workflows/deploy.yml` 이
-   `uv run tts-bmt run` 실행 -> `docs/` 산출물 갱신 -> Pages 배포
-4. 배포 URL: https://techgit01.github.io/tts-bmt-poc/
+**GitHub Actions 가 유일한 배포 경로입니다.** (산출물은 CI가 생성하므로 커밋하지 않습니다)
+
+1. **Settings -> Pages -> Source: GitHub Actions** (한 번만 설정)
+2. `main` 브랜치 푸시 시 `.github/workflows/deploy.yml` 이
+   `uv run tts-bmt run` 실행 -> `docs/` 산출물 생성 -> Pages 배포
+3. 배포 URL: https://techgit01.github.io/tts-bmt-poc/
 
 > **스크립트 한 줄 배포:** `./deploy.sh`
-> 로컬에서 `docs/` 를 갱신·커밋하고 `main` 에 푸시 → Actions 가 Pages 로 배포합니다.
-> (`-m "메시지"` 커밋 메시지 지정, `--no-run` 재측정 없이 현재 산출물만 배포)
-
-### B. 수동 — 정적 파일만
-1. 로컬에서 `uv run tts-bmt run` 으로 `docs/` 채우기
-2. 커밋/푸시
-3. **Settings -> Pages -> Source: Deploy from a branch -> `main` / `docs`**
-
-> `docs/.nojekyll` 가 포함되어 있어 Jekyll 처리를 건너뜁니다.
+> 보류 중인 (소스) 변경을 커밋하고 `main` 에 푸시 → Actions 가 빌드·배포합니다.
+> (`-m "메시지"` 커밋 메시지 지정, `--preview` 푸시 없이 로컬 `docs/` 만 생성)
+>
+> ⚠️ `docs/results/`, `docs/audio/` 는 **생성물이라 커밋하지 않습니다**(.gitignore).
+> 비결정적 측정치라 커밋하면 저장소와 CI 출력이 계속 어긋나기 때문입니다.
+> 로컬에서 보려면 `./run.sh --serve` 가 그때그때 생성합니다.
+> (`docs/index.html`, `docs/.nojekyll` 는 소스라 커밋됨 — Jekyll 처리는 건너뜀)
+>
+> 🔑 `.github/workflows/` 를 **처음 푸시**할 때는 토큰에 `workflow` 스코프가 필요합니다
+> (`gh auth refresh -s workflow`). 이후 일반 푸시는 추가 스코프가 필요 없습니다.
 
 ---
 
@@ -124,7 +133,7 @@ uv sync --extra piper
 |------|------|
 | **RTF** (Real-Time Factor) | 합성시간 / 오디오길이. **낮을수록 빠름** (0.1 = 1초 오디오를 0.1초에 생성) |
 | **문자/초** | 초당 처리한 한국어 글자 수. 높을수록 빠름 |
-| **모드** | `real`(실측) / `simulated`(엔진 미설치 폴백) |
+| **모드** | `real`(실제 합성 성공) / `simulated`(폴백 — 합성 신호, 음질 아님). 설치 여부가 아니라 실제 합성 결과로 판정 |
 
 테스트 문장은 평서·의문·긴급·차분·영문혼합 5종으로,
 FDS 상담 시 필요한 억양 변화를 포함합니다. (`src/tts_bmt/benchmark.py`)
@@ -137,21 +146,21 @@ FDS 상담 시 필요한 억양 변화를 포함합니다. (`src/tts_bmt/benchma
 tts-bmt-poc/
 ├─ setup.sh                # 새 PC 환경 준비 (uv 설치 + sync)
 ├─ run.sh                  # 벤치마크 실행 (+ --serve 데모 미리보기)
-├─ deploy.sh               # docs/ 갱신 → 커밋 → main 푸시 (Pages 자동 배포)
+├─ deploy.sh               # 소스 커밋 → main 푸시 (Actions 가 빌드·배포)
 ├─ notebooks/
 │  ├─ tts_bmt_colab.ipynb       # Colab 학습 노트북 (학습형 2종)
 │  └─ google-colab-setup.md     # Colab 무료 계정 생성/시작 가이드
-├─ pyproject.toml          # uv 프로젝트 (requires-python >=3.12,<3.13)
-├─ .python-version         # 3.12 고정
+├─ pyproject.toml          # uv 프로젝트 (requires-python >=3.12)
+├─ .python-version         # 개발 환경 3.12 고정
 ├─ src/tts_bmt/
 │  ├─ engines.py           # 공통 어댑터 + 4종 + 시뮬레이션 폴백
 │  ├─ benchmark.py         # 측정 실행 -> JSON/오디오 산출
-│  └─ cli.py               # tts-bmt run|list
+│  └─ cli.py               # tts-bmt run [--model KEY=PATH] | list
 ├─ docs/                   # <- GitHub Pages 서빙 루트
-│  ├─ index.html           # 정적 데모 (오디오 재생 + 파형 + 비교)
-│  ├─ results/benchmark.json
-│  ├─ audio/<engine>/*.wav
-│  └─ .nojekyll
+│  ├─ index.html           # 정적 데모 (오디오 재생 + 파형 + 비교)  [소스]
+│  ├─ .nojekyll            # Jekyll 건너뜀                          [소스]
+│  ├─ results/             # benchmark.json   ← CI/run.sh 생성물 (gitignore)
+│  └─ audio/<engine>/*.wav #                  ← CI/run.sh 생성물 (gitignore)
 └─ .github/workflows/deploy.yml
 ```
 
@@ -163,4 +172,8 @@ tts-bmt-poc/
 - 시뮬레이션 모드 수치는 파이프라인 검증용이며 실제 음질이 아닙니다.
 
 ## 라이선스
-코드: MIT. 각 TTS 엔진/모델의 라이선스는 위 표 및 원 저장소를 따릅니다.
+- **이 저장소의 소스 코드/데모 스캐폴딩: MIT** ([LICENSE](LICENSE)).
+- **각 TTS 엔진/모델**의 라이선스는 위 표 및 원 저장소를 따릅니다.
+- ⚠️ **생성된 오디오 산출물**(`docs/audio/*.wav`)은 MIT가 아니라 **이를 만든 엔진/모델의
+  라이선스**를 따릅니다. 특히 **Supertonic 모델은 OpenRAIL-M**(사용 기반 제한 + 저작자
+  표시 의무)이므로, 그 출력 오디오를 배포·상업 이용하기 전 원문 약관을 검토하세요.

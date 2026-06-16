@@ -1,30 +1,45 @@
 #!/usr/bin/env bash
-# deploy.sh — 산출물 갱신 후 GitHub 에 배포
+# deploy.sh — 변경사항을 커밋하고 main 에 푸시 → GitHub Actions 가 빌드·배포
 #
-#   ./deploy.sh                 # 벤치마크 재실행 → docs/ 갱신 → 커밋 → main 푸시
+#   ./deploy.sh                 # 보류 중인 변경 커밋 후 main 푸시
 #   ./deploy.sh -m "메시지"      # 커밋 메시지 지정
-#   ./deploy.sh --no-run        # 재측정 없이 현재 docs/ 그대로 커밋·푸시
+#   ./deploy.sh --preview       # 푸시 없이 로컬에서 docs/ 만 생성해 미리보기 안내
 #
-# 푸시되면 .github/workflows/deploy.yml 이 자동으로 돌아
-# GitHub Pages( https://techgit01.github.io/tts-bmt-poc/ )로 배포됩니다.
+# 산출물(docs/results, docs/audio)은 CI(.github/workflows/deploy.yml)가
+# 매 푸시마다 'uv run tts-bmt run' 으로 재생성해 Pages 로 배포합니다.
+# 따라서 생성물은 저장소에 커밋하지 않습니다(.gitignore). 배포 = main 푸시.
 set -euo pipefail
 
 cd "$(dirname "$0")"
+for env_file in "$HOME/.local/bin/env" "$HOME/.cargo/env"; do
+  [ -f "$env_file" ] && . "$env_file"
+done
 export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
 
-MSG=""
-DO_RUN=1
+MSG="Deploy: update site"
+PREVIEW=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -m|--message) MSG="${2:-}"; shift 2 ;;
-    --no-run)     DO_RUN=0; shift ;;
-    *) echo "알 수 없는 옵션: $1" >&2; exit 1 ;;
+    -m|--message)
+      [[ $# -ge 2 ]] || { echo "✗ -m/--message 에 커밋 메시지가 필요합니다." >&2; exit 1; }
+      MSG="$2"; shift 2 ;;
+    --preview) PREVIEW=1; shift ;;
+    -h|--help) grep '^#' "$0" | grep -v '^#!' | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "✗ 알 수 없는 옵션: $1" >&2; exit 1 ;;
   esac
 done
 
-# 사전 점검 -----------------------------------------------------------
-if [[ ! -d .git ]]; then
-  echo "✗ git 저장소가 아닙니다. 먼저 'git init' 후 origin 을 설정하세요." >&2
+# 로컬 미리보기 모드: 푸시 없이 docs/ 만 생성 안내 -----------------
+if [[ "$PREVIEW" -eq 1 ]]; then
+  command -v uv >/dev/null 2>&1 || { echo "✗ uv 가 없습니다. ./setup.sh 먼저." >&2; exit 1; }
+  uv run tts-bmt run
+  echo "✓ docs/ 생성 완료. 미리보기: ./run.sh --serve"
+  exit 0
+fi
+
+# 사전 점검 (git 자체로 판별 — worktree/submodule 안전) ---------------
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "✗ git 저장소가 아닙니다. 'git init' 후 origin 을 설정하세요." >&2
   exit 1
 fi
 if ! git remote get-url origin >/dev/null 2>&1; then
@@ -32,36 +47,25 @@ if ! git remote get-url origin >/dev/null 2>&1; then
   exit 1
 fi
 
-# 1) 산출물 갱신 ------------------------------------------------------
-if [[ "$DO_RUN" -eq 1 ]]; then
-  if ! command -v uv >/dev/null 2>&1; then
-    echo "✗ uv 가 없습니다. 먼저 ./setup.sh 를 실행하거나 --no-run 으로 실행하세요." >&2
-    exit 1
-  fi
-  echo "==> [1/3] 벤치마크 실행 → docs/ 갱신"
-  uv run tts-bmt run
-else
-  echo "==> [1/3] 재측정 건너뜀 (--no-run)"
-fi
-
-# 2) 커밋 -------------------------------------------------------------
-echo "==> [2/3] 변경사항 커밋"
-git add docs
+# 커밋 (보류 중 변경이 있을 때만) ------------------------------------
+echo "==> 변경사항 커밋"
+git add -A
 if git diff --cached --quiet; then
-  echo "    docs/ 변경 없음 → 빈 커밋 없이 푸시만 진행"
+  echo "    커밋할 변경 없음 → 푸시만 진행 (CI 재배포 트리거)"
 else
-  if [[ -z "$MSG" ]]; then
-    MSG="Deploy: refresh benchmark results and demo"
-  fi
   git commit -q -m "$MSG"
   echo "    커밋: $MSG"
 fi
 
-# 3) 푸시 (Actions 가 Pages 배포) ------------------------------------
+# 푸시 → Actions 가 빌드·배포 ----------------------------------------
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-echo "==> [3/3] origin/${BRANCH} 푸시 → GitHub Actions 가 Pages 배포"
+echo "==> origin/${BRANCH} 푸시 → GitHub Actions 빌드·배포"
 git push origin "$BRANCH"
 
+REPO_URL="$(git remote get-url origin | sed -e 's/\.git$//' -e 's#git@github.com:#https://github.com/#')"
 echo
-echo "✓ 푸시 완료. 배포 진행 상황: $(git remote get-url origin | sed 's/\.git$//')/actions"
+echo "✓ 푸시 완료. 배포 진행: ${REPO_URL}/actions"
 echo "✓ 배포 URL: https://techgit01.github.io/tts-bmt-poc/"
+echo
+echo "  ℹ️  .github/workflows/ 를 처음 푸시할 때는 토큰에 'workflow' 스코프가 필요합니다"
+echo "     (gh auth refresh -s workflow). 이후 일반 푸시는 추가 스코프 불필요."

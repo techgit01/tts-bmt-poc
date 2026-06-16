@@ -41,10 +41,23 @@ def cmd_list(_: argparse.Namespace) -> None:
     console.print(table)
 
 
+def _parse_models(pairs: list[str] | None) -> dict[str, str]:
+    """`--model key=path` 들을 dict 로. 예: kr_custom=models/kr.pth"""
+    out: dict[str, str] = {}
+    for item in pairs or []:
+        if "=" not in item:
+            raise SystemExit(f"--model 형식 오류: '{item}' (key=path 형태여야 함)")
+        key, path = item.split("=", 1)
+        out[key.strip()] = path.strip()
+    return out
+
+
 def cmd_run(args: argparse.Namespace) -> None:
     out_root = Path(args.out).resolve()
     console.print(f"[bold]벤치마크 실행[/bold] → {out_root}")
-    report = run_benchmark(out_root)
+    model_paths = _parse_models(args.model)
+    engines = all_engines(model_paths) if model_paths else None
+    report = run_benchmark(out_root, engines=engines)
 
     table = Table(title="결과 요약")
     table.add_column("엔진", style="bold")
@@ -75,6 +88,11 @@ def main() -> None:
 
     p_run = sub.add_parser("run", help="벤치마크 실행")
     p_run.add_argument("--out", default=str(DOCS), help="산출물 루트 (기본: docs/)")
+    p_run.add_argument(
+        "--model", action="append", metavar="KEY=PATH",
+        help="학습형/모델 의존 엔진의 산출물 경로 (반복 가능). "
+             "예: --model kr_custom=models/kr.pth --model piper_plus=models/ko.onnx",
+    )
     p_run.set_defaults(func=cmd_run)
 
     args = parser.parse_args()

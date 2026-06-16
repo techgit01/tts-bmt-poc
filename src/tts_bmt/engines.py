@@ -258,10 +258,18 @@ class SceTtsEngine(Engine):
 # ----------------------------------------------------------------------
 # 레지스트리
 # ----------------------------------------------------------------------
-def all_engines() -> list[Engine]:
+def all_engines(model_paths: dict[str, str] | None = None) -> list[Engine]:
+    """엔진 4종을 생성한다.
+
+    `model_paths` 로 학습형/모델 의존 엔진의 산출물 경로를 주면 해당 엔진의
+    `available()` 이 True 가 되어 실측(real) 모드로 전환된다.
+    예: all_engines({"piper_plus": "models/ko.onnx", "kr_custom": "models/kr.pth"})
+    (Supertonic 은 pip 패키지 설치 여부로 판별하므로 경로가 필요 없다.)
+    """
+    mp = model_paths or {}
     return [
         SupertonicEngine(),
-        PiperPlusEngine(),
-        KrCustomEngine(),
-        SceTtsEngine(),
+        PiperPlusEngine(model_path=mp.get("piper_plus")),
+        KrCustomEngine(model_path=mp.get("kr_custom")),
+        SceTtsEngine(model_path=mp.get("sce_tts")),
     ]

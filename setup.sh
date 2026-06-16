@@ -14,12 +14,20 @@ set -euo pipefail
 # 스크립트 위치를 기준으로 동작 (어디서 호출하든 OK)
 cd "$(dirname "$0")"
 
+# uv 설치 위치는 환경마다 다를 수 있어, 설치 스크립트가 생성하는 env 파일을
+# 우선 source 하고(가장 정확) 흔한 경로는 fallback 으로만 추가한다.
+load_uv_env() {
+  for env_file in "$HOME/.local/bin/env" "$HOME/.cargo/env"; do
+    [ -f "$env_file" ] && . "$env_file"
+  done
+  export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+}
+
 echo "==> [1/4] uv 확인"
 if ! command -v uv >/dev/null 2>&1; then
   echo "    uv 미설치 → 설치합니다."
   curl -LsSf https://astral.sh/uv/install.sh | sh
-  # 설치 직후 PATH 반영 (현재 셸용)
-  export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+  load_uv_env
 fi
 if ! command -v uv >/dev/null 2>&1; then
   echo "    ✗ uv 를 PATH 에서 찾지 못했습니다. 새 터미널을 열고 다시 실행하세요." >&2
@@ -33,7 +41,7 @@ uv python pin 3.12
 echo "==> [3/4] 의존성 설치"
 if [[ "${1:-}" == "--full" ]]; then
   echo "    --full: 실측 엔진(supertonic, piper) 포함"
-  uv sync --extra supertonic --extra piper --extra audio
+  uv sync --extra supertonic --extra piper
 else
   echo "    코어만 설치 (실측 엔진은 './setup.sh --full' 또는 'uv sync --extra <엔진>')"
   uv sync
@@ -41,9 +49,13 @@ fi
 
 echo "==> [4/4] VS Code 확장 (GitHub Actions) 설치"
 if command -v code >/dev/null 2>&1; then
-  # 워크플로(.github/workflows/*.yml) 편집/실행 모니터링용 공식 확장
-  code --install-extension github.vscode-github-actions --force
-  echo "    github.vscode-github-actions 설치 완료"
+  # 워크플로(.github/workflows/*.yml) 편집/실행 모니터링용 공식 확장.
+  # 확장 설치 실패가 전체 setup(set -e)을 중단시키지 않도록 || 로 보호.
+  if code --install-extension github.vscode-github-actions --force; then
+    echo "    github.vscode-github-actions 설치 완료"
+  else
+    echo "    ⚠️ 확장 설치 실패 — 무시하고 진행 (수동 설치 가능)"
+  fi
 else
   echo "    'code' CLI 미발견 → 건너뜀."
   echo "    VS Code 에서 Command Palette > 'Shell Command: Install code command in PATH' 실행 후"

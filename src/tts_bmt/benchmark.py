@@ -48,7 +48,6 @@ def run_benchmark(
     engine_blocks = []
 
     for eng in engines:
-        is_real = eng.available()
         syntheses: list[Synthesis] = []
 
         for s in sentences:
@@ -58,6 +57,11 @@ def run_benchmark(
 
         rtfs = [s.rtf for s in syntheses]
         cps = [s.chars_per_sec for s in syntheses]
+
+        # 모드는 available() 가 아니라 '실제로 합성된 결과'로 판정한다.
+        # (엔진이 설치돼 있어도 실제 합성을 구현하지 않고 시뮬레이션으로
+        #  폴백하면 'simulated' 로 정직하게 표기 — real 표기가 거짓이 되지 않도록.)
+        is_real = bool(syntheses) and all(not s.simulated for s in syntheses)
 
         engine_blocks.append({
             "meta": asdict(eng.meta),

@@ -3,24 +3,22 @@ name = "tts-bmt-poc"
 version = "0.1.0"
 description = "한국어 TTS 4종 벤치마크 POC (중국 제외 / 상업용 무료) — 로컬 측정 후 GitHub Pages 정적 데모로 결과 공개"
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "TTS BMT POC" }]
 
-# 코어 의존성: 측정 하네스(harness) 자체는 가벼움.
-# 실제 TTS 엔진은 무거우므로 optional-dependencies(extras)로 분리.
+# 코어 의존성: 측정 하네스(harness) 자체는 가벼움 (stdlib + rich 만 사용).
+# 실제 TTS 엔진과 오디오 I/O 는 무거우므로 optional-dependencies(extras)로 분리.
 dependencies = [
-    "numpy>=1.26",
-    "soundfile>=0.12",
     "rich>=13.7",
 ]
 
 [project.optional-dependencies]
 # 엔진별로 따로 설치 (충돌 방지). 예: uv sync --extra supertonic
-supertonic = ["supertonic>=1.3.1"]
-piper = ["piper-plus>=1.12.0"]
+# soundfile 은 실제 합성 결과의 길이 측정에 쓰이므로 각 추론 엔진과 함께 설치.
+supertonic = ["supertonic>=1.3.1", "soundfile>=0.12"]
+piper = ["piper-plus>=1.12.0", "soundfile>=0.12"]
 # kr-custom-tts / sce-tts 는 학습형이라 별도 노트북에서 모델 산출물(.onnx/.pt)만 받아옴
-audio = ["librosa>=0.10", "scipy>=1.13"]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
 [project.scripts]
