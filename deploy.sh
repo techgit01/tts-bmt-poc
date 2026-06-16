@@ -5,9 +5,9 @@
 #   ./deploy.sh -m "메시지"      # 커밋 메시지 지정
 #   ./deploy.sh --preview       # 푸시 없이 로컬에서 docs/ 만 생성해 미리보기 안내
 #
-# 산출물(docs/results, docs/audio)은 CI(.github/workflows/deploy.yml)가
-# 매 푸시마다 'uv run tts-bmt run' 으로 재생성해 Pages 로 배포합니다.
-# 따라서 생성물은 저장소에 커밋하지 않습니다(.gitignore). 배포 = main 푸시.
+# 데모 음성(docs/audio, docs/results)은 Google Colab 에서 Supertonic 실측으로
+# 생성해 '커밋'합니다. CI(.github/workflows/deploy.yml)는 재생성하지 않고
+# 커밋된 docs/ 를 그대로 Pages 로 게시합니다. 배포 = main 푸시.
 set -euo pipefail
 
 cd "$(dirname "$0")"

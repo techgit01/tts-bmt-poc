@@ -21,22 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      - name: Pin Python (3.12 LTS)
-        run: uv python pin 3.12
-
-      - name: Sync (core deps only)
-        run: uv sync
-
-      # 엔진 미설치 → 시뮬레이션 모드로 산출물 생성 (파이프라인 검증).
-      # 실제 음질 비교를 CI에서 하려면 아래에 엔진 설치 + 모델 다운로드 단계를 추가.
-      - name: Run benchmark
-        run: uv run tts-bmt run
-
+      # 실제 음성 산출물(docs/audio, docs/results)은 Google Colab 에서
+      # Supertonic 실측으로 생성해 저장소에 커밋한다(아래 notebooks/ 참고).
+      # CI 는 그 커밋된 docs/ 를 '그대로' 게시한다 — 여기서 재생성하면
+      # (엔진 미설치라) 실제 음성이 시뮬레이션 톤으로 덮어써지기 때문.
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

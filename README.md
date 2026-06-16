@@ -106,21 +106,21 @@ uv run tts-bmt run \
 
 ## GitHub 배포 -> 온라인 확인
 
-**GitHub Actions 가 유일한 배포 경로입니다.** (산출물은 CI가 생성하므로 커밋하지 않습니다)
+**데모 음성은 Colab 에서 만들고, CI 는 커밋된 `docs/` 를 그대로 게시합니다.**
 
-1. **Settings -> Pages -> Source: GitHub Actions** (한 번만 설정)
-2. `main` 브랜치 푸시 시 `.github/workflows/deploy.yml` 이
-   `uv run tts-bmt run` 실행 -> `docs/` 산출물 생성 -> Pages 배포
-3. 배포 URL: https://techgit01.github.io/tts-bmt-poc/
+1. **데모 음성 생성** — [`notebooks/tts_bmt_colab.ipynb`](notebooks/tts_bmt_colab.ipynb) 에서
+   Supertonic 실측으로 `docs/audio` + `docs/results` (진짜 한국어 음성) 생성 후 커밋
+2. **Settings -> Pages -> Source: GitHub Actions** (한 번만 설정)
+3. `main` 푸시 시 `.github/workflows/deploy.yml` 이 **재생성 없이 커밋된 `docs/` 를 Pages 로 게시**
+4. 배포 URL: https://techgit01.github.io/tts-bmt-poc/
 
 > **스크립트 한 줄 배포:** `./deploy.sh`
-> 보류 중인 (소스) 변경을 커밋하고 `main` 에 푸시 → Actions 가 빌드·배포합니다.
-> (`-m "메시지"` 커밋 메시지 지정, `--preview` 푸시 없이 로컬 `docs/` 만 생성)
+> 보류 중인 변경을 커밋하고 `main` 에 푸시 → Actions 가 게시합니다.
+> (`-m "메시지"` 커밋 메시지 지정, `--preview` 푸시 없이 로컬 `docs/` 만 생성해 미리보기)
 >
-> ⚠️ `docs/results/`, `docs/audio/` 는 **생성물이라 커밋하지 않습니다**(.gitignore).
-> 비결정적 측정치라 커밋하면 저장소와 CI 출력이 계속 어긋나기 때문입니다.
-> 로컬에서 보려면 `./run.sh --serve` 가 그때그때 생성합니다.
-> (`docs/index.html`, `docs/.nojekyll` 는 소스라 커밋됨 — Jekyll 처리는 건너뜀)
+> ℹ️ `docs/audio/`, `docs/results/` 는 **Colab 실측 음성**이라 의도적으로 커밋합니다.
+> CI 가 재생성하지 않으므로(엔진 미설치) 시뮬레이션 톤으로 덮어쓰이지 않습니다.
+> 로컬에서 빠르게 시뮬레이션으로 미리보려면 `./run.sh --serve`.
 >
 > 🔑 `.github/workflows/` 를 **처음 푸시**할 때는 토큰에 `workflow` 스코프가 필요합니다
 > (`gh auth refresh -s workflow`). 이후 일반 푸시는 추가 스코프가 필요 없습니다.
@@ -159,8 +159,8 @@ tts-bmt-poc/
 ├─ docs/                   # <- GitHub Pages 서빙 루트
 │  ├─ index.html           # 정적 데모 (오디오 재생 + 파형 + 비교)  [소스]
 │  ├─ .nojekyll            # Jekyll 건너뜀                          [소스]
-│  ├─ results/             # benchmark.json   ← CI/run.sh 생성물 (gitignore)
-│  └─ audio/<engine>/*.wav #                  ← CI/run.sh 생성물 (gitignore)
+│  ├─ results/benchmark.json   # Colab 실측 결과 (커밋, CI 가 그대로 게시)
+│  └─ audio/<engine>/*.wav     # Colab 실측 음성 (커밋, CI 가 그대로 게시)
 └─ .github/workflows/deploy.yml
 ```
 

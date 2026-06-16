@@ -139,8 +139,9 @@ class SupertonicEngine(Engine):
               "모델은 OpenRAIL-M(사용제한+저작자표시) — MIT와 다름.",
     )
 
-    def __init__(self) -> None:
+    def __init__(self, voice_name: str = "F1") -> None:
         self._tts = None
+        self._voice_name = voice_name
 
     def available(self) -> bool:
         try:
@@ -152,14 +153,37 @@ class SupertonicEngine(Engine):
     def synthesize(self, text: str, out_path: Path) -> Synthesis:
         if not self.available():
             return self._simulate(text, out_path)
-        # 실제 구현 (설치 시):
-        #   from supertonic import Supertonic
-        #   if self._tts is None:
-        #       self._tts = Supertonic()
-        #   start = time.perf_counter()
-        #   self._tts.tts_to_file(text, out_path, lang="ko")
-        #   ... soundfile로 길이 측정 후 Synthesis 반환
-        return self._simulate(text, out_path)
+        try:
+            from supertonic import TTS
+            if self._tts is None:
+                # 최초 1회 ~400MB 모델을 ~/.cache/supertonic3/ 로 자동 다운로드
+                self._tts = TTS(auto_download=True)
+            style = self._tts.get_voice_style(voice_name=self._voice_name)
+
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            start = time.perf_counter()
+            wav, _ = self._tts.synthesize(text=text, voice_style=style, lang="ko")
+            synth_sec = time.perf_counter() - start
+            self._tts.save_audio(wav, str(out_path))
+
+            # 저장된 WAV 에서 실제 길이/샘플레이트를 읽어 정확히 측정
+            with wave.open(str(out_path), "rb") as w:
+                sr = w.getframerate()
+                duration = w.getnframes() / sr if sr else 0.0
+
+            return Synthesis(
+                engine_key=self.meta.key,
+                text=text,
+                wav_path=out_path,
+                sample_rate=sr,
+                duration_sec=duration,
+                synth_sec=synth_sec,
+                simulated=False,
+                extra={"voice": self._voice_name},
+            )
+        except Exception as e:  # 설치돼 있어도 추론 실패 시 폴백 (정직하게 simulated 표기)
+            print(f"[supertonic] 실측 실패 → 시뮬레이션 폴백: {e}")
+            return self._simulate(text, out_path)
 
 
 # ----------------------------------------------------------------------
