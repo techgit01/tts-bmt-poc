@@ -87,6 +87,11 @@ uv sync --extra piper
 자가 음성으로 학습한 모델 산출물을 받아 어댑터에 경로를 지정하세요.
 (`src/tts_bmt/engines.py` 의 각 엔진 `model_path` 참고)
 
+> 🧪 **Colab 학습 노트북:** [`notebooks/tts_bmt_colab.ipynb`](notebooks/tts_bmt_colab.ipynb)
+> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/techgit01/tts-bmt-poc/blob/main/notebooks/tts_bmt_colab.ipynb)
+> 4종 설치/학습 → 모델 다운로드 → `model_path` 연결 → `./run.sh` 실측 흐름을 셀 단위로 안내합니다.
+> (추론형 2종은 로컬 `./setup.sh --full` 로도 설치 가능, 학습형 2종만 Colab 필요)
+
 ---
 
 ## GitHub 배포 -> 온라인 확인
