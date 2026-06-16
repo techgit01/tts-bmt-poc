@@ -133,8 +133,27 @@
   }
   .rank-val small { color: var(--ink-dim); }
 
+  /* ---- Engine tabs ---- */
+  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; }
+  .tab {
+    font-family:'IBM Plex Mono',monospace; font-size:13px;
+    color:var(--ink-dim); background:var(--panel);
+    border:1px solid var(--line); border-bottom:2px solid transparent;
+    border-radius:3px 3px 0 0; padding:9px 14px; cursor:pointer;
+  }
+  .tab:hover { color:var(--ink); }
+  .tab.active { color:var(--ink); background:var(--panel-2); border-bottom-color:var(--signal); }
+  .tab .dot {
+    display:inline-block; width:7px; height:7px; border-radius:50%;
+    margin-right:7px; vertical-align:middle;
+  }
+  .tab .dot.real { background:var(--signal); }
+  .tab .dot.sim  { background:var(--amber); }
+
   /* ---- Engine cards ---- */
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .grid.tabbed { grid-template-columns: 1fr; }   /* 탭 모드: 한 번에 한 카드 */
+  .card.hidden { display: none; }
   @media (max-width: 760px) { .grid { grid-template-columns: 1fr; }
     .rank-row { grid-template-columns: 24px 110px 1fr 78px; gap:10px; } }
 
@@ -417,7 +436,8 @@
     <div class="ranking" id="ranking"><div class="loading">로딩 중…</div></div>
 
     <p class="section-label">엔진별 상세 · 오디오 재생</p>
-    <div class="grid" id="cards"><div class="loading">로딩 중…</div></div>
+    <div class="tabs" id="tabs"></div>
+    <div class="grid tabbed" id="cards"><div class="loading">로딩 중…</div></div>
   </main>
 
   <footer>
@@ -539,13 +559,15 @@ async function main() {
     });
   });
 
-  // cards
+  // cards (엔진별 탭)
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const cards = document.getElementById("cards");
   cards.innerHTML = "";
+  const cardEls = [];     // {el, draws:[fn], drawn:bool}
   report.engines.forEach(b => {
     const isSim = b.mode !== "real";
     const card = el("div","card" + (isSim ? " is-sim" : ""));
+    const draws = [];
 
     const head = el("div","card-head");
     const title = el("div","card-title");
@@ -594,11 +616,33 @@ async function main() {
       wrap.appendChild(audio);
 
       samples.appendChild(wrap);
-      drawWave(canvas, s.audio, audioCtx);
+      // 파형은 탭이 보일 때 그린다(숨겨진 카드는 width 0).
+      draws.push(() => drawWave(canvas, s.audio, audioCtx));
     });
     card.appendChild(samples);
     cards.appendChild(card);
+    cardEls.push({ el: card, draws, drawn: false });
   });
+
+  // ---- 탭 바 구성 ----
+  const tabsWrap = document.getElementById("tabs");
+  tabsWrap.innerHTML = "";
+  const tabBtns = [];
+  function showTab(i) {
+    cardEls.forEach((c, j) => c.el.classList.toggle("hidden", j !== i));
+    tabBtns.forEach((t, j) => t.classList.toggle("active", j === i));
+    const c = cardEls[i];
+    if (!c.drawn) { c.draws.forEach(fn => fn()); c.drawn = true; }
+  }
+  report.engines.forEach((b, i) => {
+    const isSim = b.mode !== "real";
+    const t = el("button", "tab",
+      `<span class="dot ${isSim ? "sim" : "real"}"></span>${b.meta.name}`);
+    t.addEventListener("click", () => showTab(i));
+    tabsWrap.appendChild(t);
+    tabBtns.push(t);
+  });
+  showTab(0);   // 기본: 첫 엔진(Supertonic)
 }
 main();
 
