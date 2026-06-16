@@ -98,6 +98,10 @@ uv sync --extra piper
    `uv run tts-bmt run` 실행 -> `docs/` 산출물 갱신 -> Pages 배포
 4. 배포 URL: https://techgit01.github.io/tts-bmt-poc/
 
+> **스크립트 한 줄 배포:** `./deploy.sh`
+> 로컬에서 `docs/` 를 갱신·커밋하고 `main` 에 푸시 → Actions 가 Pages 로 배포합니다.
+> (`-m "메시지"` 커밋 메시지 지정, `--no-run` 재측정 없이 현재 산출물만 배포)
+
 ### B. 수동 — 정적 파일만
 1. 로컬에서 `uv run tts-bmt run` 으로 `docs/` 채우기
 2. 커밋/푸시
@@ -126,6 +130,7 @@ FDS 상담 시 필요한 억양 변화를 포함합니다. (`src/tts_bmt/benchma
 tts-bmt-poc/
 ├─ setup.sh                # 새 PC 환경 준비 (uv 설치 + sync)
 ├─ run.sh                  # 벤치마크 실행 (+ --serve 데모 미리보기)
+├─ deploy.sh               # docs/ 갱신 → 커밋 → main 푸시 (Pages 자동 배포)
 ├─ pyproject.toml          # uv 프로젝트 (requires-python >=3.12,<3.13)
 ├─ .python-version         # 3.12 고정
 ├─ src/tts_bmt/

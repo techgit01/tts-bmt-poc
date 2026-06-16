@@ -1,0 +1,8 @@
+{
+  // VS Code 가 이 프로젝트를 열 때 추천하는 확장 목록.
+  // setup.sh 의 'code --install-extension' 단계와 동일하게 유지.
+  "recommendations": [
+    "github.vscode-github-actions",
+    "ms-python.python"
+  ]
+}
