@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>한국어 TTS 벤치마크 · 중국 제외 / 상업용 무료</title>
+<style>
+  /* ---- Design tokens ----------------------------------------------
+     Subject: 카드사 FDS 음성 상담 → 신호/오실로스코프 모티프
+     Palette: 심해 네이비 배경에 '신호 시안' 액센트, 경고 앰버
+     Type: Space Grotesk(디스플레이) + IBM Plex Mono(수치/라벨)
+     Signature: 각 엔진 카드의 라이브 파형 캔버스
+  ------------------------------------------------------------------ */
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:        #0a0e14;
+    --panel:     #121822;
+    --panel-2:   #19212e;
+    --line:      #243040;
+    --ink:       #e6edf3;
+    --ink-dim:   #8a98a8;
+    --signal:    #35e0c4;   /* 신호 시안 */
+    --signal-dk: #1aa68f;
+    --amber:     #f4b842;   /* 경고 앰버 */
+    --kr:        #5b9dff;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- Hero ---- */
+  .hero {
+    padding: 64px 24px 40px;
+    max-width: 1080px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(30px, 5vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+    color: var(--ink);
+  }
+  h1 .accent { color: var(--signal); }
+  .lede {
+    max-width: 640px;
+    color: var(--ink-dim);
+    font-size: 15px;
+    margin: 0 0 24px;
+  }
+  .criteria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .chip {
+    font-size: 12px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 6px 11px;
+    color: var(--ink);
+    background: var(--panel);
+  }
+  .chip b { color: var(--signal); font-weight: 600; }
+  .meta-line {
+    margin-top: 26px;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+
+  /* ---- Section ---- */
+  main { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+  .section-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 0 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: ""; flex: 1; height: 1px; background: var(--line);
+  }
+
+  /* ---- Ranking bars ---- */
+  .ranking { display: grid; gap: 14px; margin-bottom: 56px; }
+  .rank-row {
+    display: grid;
+    grid-template-columns: 28px 150px 1fr 92px;
+    align-items: center;
+    gap: 14px;
+  }
+  .rank-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px; color: var(--signal); font-weight: 700;
+  }
+  .rank-name { font-size: 14px; font-weight: 500; }
+  .rank-name small { display:block; color: var(--ink-dim); font-size: 11px; font-weight:400; }
+  .bar-track {
+    height: 10px; background: var(--panel-2);
+    border-radius: 2px; overflow: hidden; position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--signal-dk), var(--signal));
+    width: 0; transition: width 1.1s cubic-bezier(.2,.7,.2,1);
+  }
+  .rank-val {
+    font-size: 13px; text-align: right; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .rank-val small { color: var(--ink-dim); }
+
+  /* ---- Engine cards ---- */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; }
+    .rank-row { grid-template-columns: 24px 110px 1fr 78px; gap:10px; } }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .card-head {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .card-title {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  }
+  .card-title h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    margin: 0; font-size: 19px; font-weight: 600;
+  }
+  .mode-tag {
+    font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 7px; border-radius: 2px; border: 1px solid var(--line);
+    color: var(--amber); white-space: nowrap;
+  }
+  .mode-tag.real { color: var(--signal); border-color: var(--signal-dk); }
+  .card-origin { font-size: 12px; color: var(--kr); margin-top: 4px; }
+  .card-lic { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
+
+  .card-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--line);
+  }
+  .stat { background: var(--panel); padding: 13px 16px; }
+  .stat .k { font-size: 10px; letter-spacing:.08em; text-transform:uppercase; color: var(--ink-dim); }
+  .stat .v {
+    font-family:'Space Grotesk',sans-serif;
+    font-size: 22px; font-weight:700; color: var(--ink);
+    font-variant-numeric: tabular-nums; margin-top: 3px;
+  }
+  .stat .v small { font-size:12px; color:var(--ink-dim); font-weight:400;}
+
+  .card-notes { padding: 13px 18px; font-size: 11.5px; color: var(--ink-dim); border-top:1px solid var(--line); }
+
+  /* ---- Samples ---- */
+  .samples { padding: 6px 18px 18px; }
+  .sample {
+    border-top: 1px solid var(--line); padding: 13px 0;
+  }
+  .sample:first-child { border-top: none; }
+  .sample-top { display:flex; align-items:center; gap:8px; margin-bottom: 8px; }
+  .stype {
+    font-size: 9px; letter-spacing:.1em; text-transform:uppercase;
+    padding: 2px 6px; border-radius:2px; background: var(--panel-2);
+    color: var(--signal); border:1px solid var(--line);
+  }
+  .stext { font-size: 12.5px; color: var(--ink); flex:1; }
+  .wave { width: 100%; height: 40px; display:block; background: var(--bg);
+          border:1px solid var(--line); border-radius:3px; margin: 6px 0; cursor: pointer; }
+  .sample audio { width: 100%; height: 34px; margin-top: 4px; }
+  audio::-webkit-media-controls-panel { background: var(--panel-2); }
+
+  /* ---- Footer ---- */
+  footer {
+    max-width: 1080px; margin: 0 auto; padding: 30px 24px 60px;
+    border-top: 1px solid var(--line); color: var(--ink-dim); font-size: 12px;
+  }
+  footer a { color: var(--signal); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .disclaimer {
+    background: var(--panel); border:1px solid var(--line);
+    border-left: 3px solid var(--amber);
+    padding: 14px 16px; border-radius: 3px; margin-bottom: 22px;
+    color: var(--ink); font-size: 12px;
+  }
+
+  .loading { color: var(--ink-dim); padding: 40px 0; text-align:center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar-fill { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <header class="hero">
+    <p class="eyebrow">한국어 TTS · 벤치마크 POC</p>
+    <h1>오픈소스 한국어 음성합성<br><span class="accent">4종 성능 비교</span></h1>
+    <p class="lede">
+      카드사 FDS 음성 상담을 가정한 한국어 문장으로, 중국 개발 엔진을 제외하고
+      상업용 무료(MIT 계열) 후보 4종을 같은 조건에서 측정했습니다.
+      아래 카드에서 각 문장의 합성 결과를 직접 재생하고 속도 지표를 비교할 수 있습니다.
+    </p>
+    <div class="criteria">
+      <span class="chip"><b>제외</b> 중국 개발 엔진</span>
+      <span class="chip"><b>라이선스</b> 상업용 무료</span>
+      <span class="chip"><b>언어</b> 한국어</span>
+      <span class="chip"><b>패키지</b> uv · Python 3.12</span>
+    </div>
+    <p class="meta-line" id="meta-line">측정 데이터 로딩 중…</p>
+  </header>
+
+  <main>
+    <p class="section-label">속도 순위 · 평균 RTF (낮을수록 빠름)</p>
+    <div class="ranking" id="ranking"><div class="loading">로딩 중…</div></div>
+
+    <p class="section-label">엔진별 상세 · 오디오 재생</p>
+    <div class="grid" id="cards"><div class="loading">로딩 중…</div></div>
+  </main>
+
+  <footer>
+    <div class="disclaimer" id="disclaimer"></div>
+    <p>
+      모든 측정값은 로컬에서 <code>uv run tts-bmt run</code> 으로 생성되어
+      <code>docs/results/benchmark.json</code> 에 저장됩니다. 이 페이지는 그 정적 산출물만 읽습니다.
+    </p>
+    <p>
+      후보 출처 ·
+      <a id="lnk0" href="#">Supertonic</a> ·
+      <a id="lnk1" href="#">piper-plus</a> ·
+      <a id="lnk2" href="#">kr-custom-tts</a> ·
+      <a id="lnk3" href="#">SCE-TTS</a>
+    </p>
+  </footer>
+
+<script>
+const DATA_URL = "results/benchmark.json";
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+
+// 파형을 캔버스에 그림 (오디오 파일을 디코드해서 실제 파형 표시)
+async function drawWave(canvas, url, audioCtx) {
+  try {
+    const resp = await fetch(url);
+    const buf = await resp.arrayBuffer();
+    const decoded = await audioCtx.decodeAudioData(buf);
+    const data = decoded.getChannelData(0);
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width = canvas.clientWidth * 2;
+    const H = canvas.height = 80;
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = "#35e0c4";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    const step = Math.ceil(data.length / W);
+    const mid = H / 2;
+    for (let x = 0; x < W; x++) {
+      let min = 1, max = -1;
+      for (let j = 0; j < step; j++) {
+        const v = data[x * step + j] || 0;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      }
+      ctx.moveTo(x, mid + min * mid * 0.9);
+      ctx.lineTo(x, mid + max * mid * 0.9);
+    }
+    ctx.stroke();
+  } catch (e) {
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#8a98a8";
+    ctx.font = "11px monospace";
+    ctx.fillText("waveform unavailable", 8, 24);
+  }
+}
+
+function rankColor(i){ return i===0 ? "var(--signal)" : "var(--ink)"; }
+
+async function main() {
+  let report;
+  try {
+    report = await (await fetch(DATA_URL)).json();
+  } catch (e) {
+    document.getElementById("ranking").innerHTML =
+      '<div class="loading">benchmark.json 을 찾을 수 없습니다. 먼저 <code>uv run tts-bmt run</code> 을 실행하세요.</div>';
+    return;
+  }
+
+  // meta line
+  const env = report.environment || {};
+  document.getElementById("meta-line").textContent =
+    `생성 ${new Date(report.generated_at).toLocaleString("ko-KR")} · ` +
+    `Python ${env.python} · ${env.system}/${env.machine} · 엔진 ${report.engines.length}종`;
+
+  document.getElementById("disclaimer").textContent = report.disclaimer || "";
+
+  // 링크 채우기
+  report.engines.forEach((b, i) => {
+    const a = document.getElementById("lnk" + i);
+    if (a) { a.href = b.meta.homepage; a.target = "_blank"; a.rel = "noopener"; a.textContent = b.meta.name; }
+  });
+
+  // ranking (RTF 오름차순 = 빠른 순)
+  const sorted = [...report.engines].sort((a,b)=>a.summary.rtf_mean - b.summary.rtf_mean);
+  const maxRtf = Math.max(...sorted.map(b=>b.summary.rtf_mean)) || 1;
+  const rankWrap = document.getElementById("ranking");
+  rankWrap.innerHTML = "";
+  sorted.forEach((b, i) => {
+    const row = el("div","rank-row");
+    row.appendChild(el("div","rank-num", String(i+1)));
+    row.appendChild(el("div","rank-name",
+      `${b.meta.name}<small>${b.meta.origin}</small>`));
+    const track = el("div","bar-track");
+    const fill = el("div","bar-fill");
+    track.appendChild(fill);
+    row.appendChild(track);
+    row.appendChild(el("div","rank-val",
+      `${b.summary.rtf_mean}<small> RTF</small>`));
+    rankWrap.appendChild(row);
+    // animate: 빠른 엔진일수록 막대가 짧도록 (역수 비례)
+    requestAnimationFrame(()=>{
+      const ratio = 1 - (b.summary.rtf_mean / (maxRtf*1.15));
+      fill.style.width = Math.max(12, ratio*100) + "%";
+    });
+  });
+
+  // cards
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const cards = document.getElementById("cards");
+  cards.innerHTML = "";
+  report.engines.forEach(b => {
+    const card = el("div","card");
+
+    const head = el("div","card-head");
+    const title = el("div","card-title");
+    title.appendChild(el("h3", null, b.meta.name));
+    const tag = el("span", "mode-tag" + (b.mode==="real"?" real":""),
+      b.mode === "real" ? "실측" : "시뮬레이션");
+    title.appendChild(tag);
+    head.appendChild(title);
+    head.appendChild(el("div","card-origin", b.meta.origin));
+    head.appendChild(el("div","card-lic", b.meta.license + " · " + b.meta.korean));
+    card.appendChild(head);
+
+    const stats = el("div","card-stats");
+    stats.appendChild(el("div","stat",
+      `<div class="k">평균 RTF</div><div class="v">${b.summary.rtf_mean}</div>`));
+    stats.appendChild(el("div","stat",
+      `<div class="k">문자/초</div><div class="v">${b.summary.chars_per_sec_mean}</div>`));
+    card.appendChild(stats);
+
+    card.appendChild(el("div","card-notes", b.meta.notes || ""));
+
+    const samples = el("div","samples");
+    b.samples.forEach(s => {
+      const wrap = el("div","sample");
+      const top = el("div","sample-top");
+      top.appendChild(el("span","stype", s.type));
+      top.appendChild(el("span","stext", s.text));
+      wrap.appendChild(top);
+
+      const canvas = document.createElement("canvas");
+      canvas.className = "wave";
+      wrap.appendChild(canvas);
+
+      const audio = document.createElement("audio");
+      audio.controls = true;
+      audio.preload = "none";
+      audio.src = s.audio;
+      wrap.appendChild(audio);
+
+      samples.appendChild(wrap);
+      drawWave(canvas, s.audio, audioCtx);
+    });
+    card.appendChild(samples);
+    cards.appendChild(card);
+  });
+}
+main();
+</script>
+</body>
+</html>

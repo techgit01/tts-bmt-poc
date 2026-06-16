@@ -1,0 +1,16 @@
+# uv / Python
+.venv/
+__pycache__/
+*.pyc
+.python-version.bak
+dist/
+build/
+*.egg-info/
+
+# 모델 가중치 (대용량 — Git LFS 또는 외부 호스팅 권장)
+*.onnx
+*.pt
+*.ckpt
+models/
+
+# 주의: docs/audio/*.wav 는 데모에 필요하므로 커밋함 (무시하지 않음)
