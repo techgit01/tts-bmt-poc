@@ -214,12 +214,116 @@
 
   .loading { color: var(--ink-dim); padding: 40px 0; text-align:center; }
 
+  /* ---- 시뮬레이션 카드 강조 ---- */
+  .card.is-sim { border-color: var(--amber); }
+  .card.is-sim .card-head { background: rgba(244,184,66,0.06); }
+  .sim-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 18px; font-size: 11px; color: var(--amber);
+    background: rgba(244,184,66,0.10);
+    border-bottom: 1px solid var(--line);
+  }
+  .sim-banner b { font-weight: 600; }
+  .card.is-sim .wave { opacity: 0.5; }
+  .mode-tag.sim { color: var(--amber); border-color: var(--amber); }
+
+  /* ---- 도움말 버튼 + 모달 ---- */
+  .help-btn {
+    position: fixed; top: 18px; right: 18px; z-index: 40;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    color: var(--bg); background: var(--signal);
+    border: none; border-radius: 3px; padding: 8px 14px;
+    cursor: pointer; font-weight: 600; letter-spacing: .04em;
+  }
+  .help-btn:hover { background: #5cead2; }
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 50;
+    background: rgba(4,7,12,0.72); backdrop-filter: blur(2px);
+    display: none; align-items: flex-start; justify-content: center;
+    padding: 48px 16px; overflow-y: auto;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 6px; max-width: 640px; width: 100%;
+    padding: 28px 28px 24px; color: var(--ink);
+  }
+  .modal h2 {
+    font-family: 'Space Grotesk', sans-serif; font-size: 22px;
+    margin: 0 0 4px; font-weight: 700;
+  }
+  .modal .sub { color: var(--ink-dim); font-size: 12px; margin: 0 0 20px; }
+  .modal h3 {
+    font-family: 'Space Grotesk', sans-serif; font-size: 14px;
+    color: var(--signal); margin: 22px 0 8px; letter-spacing: .02em;
+  }
+  .modal p, .modal li { font-size: 13px; color: var(--ink); line-height: 1.6; }
+  .modal ul { margin: 6px 0; padding-left: 18px; }
+  .modal .tag-real, .modal .tag-sim {
+    font-size: 10px; letter-spacing:.1em; text-transform:uppercase;
+    padding: 2px 7px; border-radius: 2px; border: 1px solid;
+  }
+  .modal .tag-real { color: var(--signal); border-color: var(--signal-dk); }
+  .modal .tag-sim  { color: var(--amber);  border-color: var(--amber); }
+  .modal-close {
+    float: right; margin-top: -6px; font-size: 22px; line-height: 1;
+    color: var(--ink-dim); background: none; border: none; cursor: pointer;
+  }
+  .modal-close:hover { color: var(--ink); }
+  .modal kbd {
+    font-size: 11px; background: var(--panel-2); border:1px solid var(--line);
+    border-radius: 3px; padding: 1px 5px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .bar-fill { transition: none; }
   }
 </style>
 </head>
 <body>
+  <button class="help-btn" id="helpBtn" aria-haspopup="dialog">? 도움말</button>
+
+  <div class="modal-backdrop" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="modal">
+      <button class="modal-close" id="helpClose" aria-label="닫기">&times;</button>
+      <h2 id="helpTitle">도움말</h2>
+      <p class="sub">이 데모를 읽는 법 — 모드 · 지표 · 엔진</p>
+
+      <h3>이 페이지는 무엇인가요?</h3>
+      <p>카드사 FDS(부정거래) 음성 상담을 가정한 한국어 5문장을, 중국 개발 엔진을 제외한
+         상업용 무료 오픈소스 TTS <b>4종</b>으로 합성해 같은 조건에서 비교합니다.
+         각 카드에서 문장별 합성 오디오를 직접 재생하고 속도 지표를 볼 수 있습니다.</p>
+
+      <h3>모드 — 꼭 확인하세요</h3>
+      <ul>
+        <li><span class="tag-real">실측</span> 실제 TTS 엔진이 합성한 <b>진짜 음성</b>입니다.</li>
+        <li><span class="tag-sim">시뮬레이션</span> 엔진 미연결 시 파이프라인 검증용으로 만든
+            <b>합성 사인파(“웅—” 톤)</b>입니다. <b>실제 음질이 아닙니다.</b></li>
+      </ul>
+      <p>현재 <b>Supertonic · kr-custom-tts · SCE-TTS</b> 는 실측,
+         <b>piper-plus</b> 만 시뮬레이션입니다 (호환되는 한국어 음성모델 부재 —
+         유일한 한국어 piper 모델이 piper-plus 비호환 phonemizer를 사용).</p>
+
+      <h3>지표</h3>
+      <ul>
+        <li><b>평균 RTF</b> = 합성시간 ÷ 오디오길이. <b>낮을수록 빠름</b>
+            (0.1 = 1초 오디오를 0.1초에 생성). 실측 엔진은 시뮬레이션보다 RTF가 큽니다(실제 추론).</li>
+        <li><b>문자/초</b> = 초당 처리한 한국어 글자 수. 높을수록 빠름.</li>
+      </ul>
+
+      <h3>음성이 “웅—” 소리만 나나요?</h3>
+      <p>그 카드가 <span class="tag-sim">시뮬레이션</span> 이기 때문입니다. <span class="tag-real">실측</span>
+         태그가 붙은 카드(▶)를 재생하면 실제 한국어 음성이 들립니다.</p>
+
+      <h3>데이터 출처</h3>
+      <p>실측 음성은 Google Colab에서 생성해 <code>docs/</code> 에 커밋하고, GitHub Actions가
+         그대로 게시합니다. 이 페이지는 정적 <code>benchmark.json</code> 만 읽습니다.</p>
+
+      <p style="margin-top:18px; color:var(--ink-dim); font-size:12px;">
+         닫기: <kbd>Esc</kbd> · 바깥 영역 클릭 · ×</p>
+    </div>
+  </div>
+
   <header class="hero">
     <p class="eyebrow">한국어 TTS · 벤치마크 POC</p>
     <h1>오픈소스 한국어 음성합성<br><span class="accent">4종 성능 비교</span></h1>
@@ -360,18 +464,25 @@ async function main() {
   const cards = document.getElementById("cards");
   cards.innerHTML = "";
   report.engines.forEach(b => {
-    const card = el("div","card");
+    const isSim = b.mode !== "real";
+    const card = el("div","card" + (isSim ? " is-sim" : ""));
 
     const head = el("div","card-head");
     const title = el("div","card-title");
     title.appendChild(el("h3", null, b.meta.name));
-    const tag = el("span", "mode-tag" + (b.mode==="real"?" real":""),
-      b.mode === "real" ? "실측" : "시뮬레이션");
+    const tag = el("span", "mode-tag " + (isSim ? "sim" : "real"),
+      isSim ? "시뮬레이션" : "실측");
     title.appendChild(tag);
     head.appendChild(title);
     head.appendChild(el("div","card-origin", b.meta.origin));
     head.appendChild(el("div","card-lic", b.meta.license + " · " + b.meta.korean));
     card.appendChild(head);
+
+    // 시뮬레이션 카드는 실음성이 아님을 명확히 안내
+    if (isSim) {
+      card.appendChild(el("div","sim-banner",
+        '⚠️ <b>실제 음성이 아닙니다</b> — 검증용 합성 톤(“웅—” 사인파)입니다.'));
+    }
 
     const stats = el("div","card-stats");
     stats.appendChild(el("div","stat",
@@ -408,6 +519,17 @@ async function main() {
   });
 }
 main();
+
+// ---- 도움말 모달 ----
+(function setupHelp(){
+  const modal = document.getElementById("helpModal");
+  const open  = () => modal.classList.add("open");
+  const close = () => modal.classList.remove("open");
+  document.getElementById("helpBtn").addEventListener("click", open);
+  document.getElementById("helpClose").addEventListener("click", close);
+  modal.addEventListener("click", (e) => { if (e.target === modal) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+})();
 </script>
 </body>
 </html>
