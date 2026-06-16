@@ -338,9 +338,10 @@
          태그가 붙은 카드(▶)를 재생하면 실제 한국어 음성이 들립니다.</p>
 
       <h3>내 문장으로 직접 생성해보기</h3>
-      <p>상단 <b>🎙️ Supertonic으로 직접 생성해보기</b> 버튼 → Colab의 <b>인터랙티브 생성기</b>(Gradio)에서
-         <b>목소리</b>(F1~F5/M1~M5) · <b>속도</b>(1.0x) · <b>텍스트</b>(최대 500자) · <b>예문</b> 으로
-         즉시 합성해 들어볼 수 있습니다. (정적 페이지라 생성은 Colab에서 실행)</p>
+      <p>상단 <b>🎙️ Supertonic으로 직접 생성해보기</b> 버튼 → 저장소에 포함된 <b>생성기 화면</b>
+         (<code>generate.html</code>)에서 <b>목소리</b>(F1~F5/M1~M5) · <b>속도</b>(1.0x) ·
+         <b>텍스트</b>(최대 500자) · <b>예문</b> 으로 합성합니다. 정적 페이지라 합성은
+         Colab 생성기(Gradio)를 백엔드로 연결해 실행됩니다(URL 붙여넣기).</p>
 
       <h3>학습 데이터셋</h3>
       <p>각 카드의 데모 음성이 어떤 데이터로 학습됐는지(카드의 <b>데이터셋</b> 줄에도 표시):</p>
@@ -403,13 +404,10 @@
     <p class="meta-line" id="meta-line">측정 데이터 로딩 중…</p>
 
     <div class="cta">
-      <a class="cta-btn"
-         href="https://colab.research.google.com/github/techgit01/tts-bmt-poc/blob/main/notebooks/tts_bmt_colab.ipynb"
-         target="_blank" rel="noopener">🎙️ Supertonic으로 직접 생성해보기</a>
+      <a class="cta-btn" href="generate.html">🎙️ Supertonic으로 직접 생성해보기</a>
       <span class="cta-note">
         <b>목소리·속도·텍스트(최대 500자)</b>를 골라 음성을 만들어 보세요.
-        이 페이지는 정적이라 생성은 <b>Colab 인터랙티브 생성기</b>(Gradio)에서 실행됩니다 —
-        링크를 열고 “🎙️ 인터랙티브 생성기” 셀을 실행하세요.
+        전용 <b>생성기 화면</b>에서 Colab 백엔드를 연결해 바로 합성합니다.
       </span>
     </div>
   </header>

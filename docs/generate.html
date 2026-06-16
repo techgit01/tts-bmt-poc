@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Supertonic 한국어 음성 생성 · TTS 벤치마크</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  :root {
+    --bg:#0a0e14; --panel:#121822; --panel-2:#19212e; --line:#243040;
+    --ink:#e6edf3; --ink-dim:#8a98a8; --signal:#35e0c4; --signal-dk:#1aa68f;
+    --amber:#f4b842; --kr:#5b9dff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'IBM Plex Mono', monospace; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 80px; }
+  .back { font-size:12px; color:var(--signal); text-decoration:none; }
+  .back:hover { text-decoration:underline; }
+  h1 {
+    font-family:'Space Grotesk',sans-serif; font-weight:700;
+    font-size:clamp(26px,4vw,40px); letter-spacing:-0.02em; margin:14px 0 8px;
+  }
+  h1 .accent { color:var(--signal); }
+  .lede { color:var(--ink-dim); font-size:14px; max-width:640px; margin:0 0 28px; }
+  h2 {
+    font-family:'Space Grotesk',sans-serif; font-size:14px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-dim); margin:34px 0 16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  h2::after { content:""; flex:1; height:1px; background:var(--line); }
+
+  .steps { display:grid; gap:12px; }
+  .step {
+    display:grid; grid-template-columns:30px 1fr; gap:14px; align-items:start;
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:4px; padding:14px 16px;
+  }
+  .step .n {
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px;
+    color:var(--signal); background:var(--panel-2); border:1px solid var(--line);
+    border-radius:50%; width:30px; height:30px; display:flex;
+    align-items:center; justify-content:center;
+  }
+  .step .t { font-size:13px; }
+  .step .t b { color:var(--ink); }
+  .step code { background:var(--panel-2); border:1px solid var(--line);
+    border-radius:3px; padding:1px 5px; font-size:12px; color:var(--signal); }
+  .colab-badge { vertical-align:middle; margin-top:6px; }
+
+  .connect {
+    display:flex; flex-wrap:wrap; gap:10px; margin:8px 0 4px;
+  }
+  .connect input {
+    flex:1; min-width:260px;
+    font-family:'IBM Plex Mono',monospace; font-size:13px;
+    color:var(--ink); background:var(--panel); border:1px solid var(--line);
+    border-radius:3px; padding:10px 12px;
+  }
+  .connect input:focus { outline:none; border-color:var(--signal-dk); }
+  .connect button {
+    font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600;
+    color:var(--bg); background:var(--signal); border:none; border-radius:3px;
+    padding:10px 18px; cursor:pointer; white-space:nowrap;
+  }
+  .connect button:hover { background:#5cead2; }
+  .hint { font-size:12px; color:var(--ink-dim); margin:4px 0 0; }
+  .err { color:var(--amber); }
+
+  .frame-wrap {
+    margin-top:18px; border:1px solid var(--line); border-radius:6px;
+    overflow:hidden; background:var(--panel); min-height:120px;
+  }
+  .frame-empty { padding:48px 20px; text-align:center; color:var(--ink-dim); font-size:13px; }
+  iframe { width:100%; height:720px; border:0; display:block; background:#fff; }
+
+  .note {
+    margin-top:26px; font-size:12px; color:var(--ink-dim);
+    border-left:3px solid var(--amber); background:var(--panel);
+    border:1px solid var(--line); border-left:3px solid var(--amber);
+    padding:12px 14px; border-radius:3px;
+  }
+  .note b { color:var(--ink); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="./">← 벤치마크 데모로</a>
+    <h1>🎙️ Supertonic <span class="accent">한국어 음성 생성</span></h1>
+    <p class="lede">
+      목소리(F1~F5 / M1~M5) · 속도(1.0x) · 텍스트(최대 500자)로 직접 합성해 보세요.
+      이 페이지는 <b>정적(GitHub Pages)</b>이라 합성 자체는 Colab의 생성기에서 실행됩니다 —
+      아래 3단계로 연결하면 이 화면 안에서 바로 사용할 수 있습니다.
+    </p>
+
+    <h2>1 · 생성기 실행 (Colab)</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="t">
+        아래 노트북을 열고 <b>“🎙️ 인터랙티브 생성기”</b> 셀을 실행합니다
+        (최초 1회 ~400MB 모델 다운로드).<br>
+        <a class="colab-badge"
+           href="https://colab.research.google.com/github/techgit01/tts-bmt-poc/blob/main/notebooks/tts_bmt_colab.ipynb"
+           target="_blank" rel="noopener">
+          <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+      </div></div>
+      <div class="step"><div class="n">2</div><div class="t">
+        실행하면 출력에 <code>https://xxxx.gradio.live</code> 형태의 <b>공개 URL</b>이 뜹니다.
+      </div></div>
+      <div class="step"><div class="n">3</div><div class="t">
+        그 URL을 아래에 붙여넣고 <b>연결</b>하면 이 화면에 생성기가 임베드됩니다.
+      </div></div>
+    </div>
+
+    <h2>2 · 생성기 연결</h2>
+    <div class="connect">
+      <input id="url" type="url" placeholder="https://xxxxxxxx.gradio.live" spellcheck="false" />
+      <button id="connect">연결</button>
+      <button id="clear" style="background:var(--panel-2);color:var(--ink);border:1px solid var(--line)">초기화</button>
+    </div>
+    <p class="hint" id="hint">붙여넣은 URL은 이 브라우저에만 저장됩니다(localStorage).</p>
+
+    <div class="frame-wrap" id="frameWrap">
+      <div class="frame-empty" id="frameEmpty">
+        아직 연결된 생성기가 없습니다. 위 단계로 Colab 생성기를 실행하고 URL을 연결하세요.
+      </div>
+    </div>
+
+    <p class="note">
+      ⚠️ Gradio <code>gradio.live</code> URL은 <b>Colab 세션이 살아있는 동안만</b> 유효합니다(세션마다 바뀜).
+      상시 운영하려면 Hugging Face Spaces 등 영구 호스팅에 같은 Gradio 앱을 올리면 됩니다.
+    </p>
+  </div>
+
+<script>
+  const KEY = "supertonic_gradio_url";
+  const $url = document.getElementById("url");
+  const $hint = document.getElementById("hint");
+  const $wrap = document.getElementById("frameWrap");
+  const $empty = document.getElementById("frameEmpty");
+
+  function isValid(u) { return /^https:\/\/[^\s]+\.gradio\.live\/?$/.test(u.trim()); }
+
+  function connect(u) {
+    u = (u || "").trim().replace(/\/+$/, "");
+    if (!isValid(u)) {
+      $hint.innerHTML = '<span class="err">⚠️ gradio.live 형식의 URL 이어야 합니다 (예: https://abc123.gradio.live)</span>';
+      return;
+    }
+    localStorage.setItem(KEY, u);
+    $wrap.innerHTML = "";
+    const f = document.createElement("iframe");
+    f.src = u;
+    f.allow = "microphone; autoplay; clipboard-write";
+    $wrap.appendChild(f);
+    $hint.textContent = "연결됨: " + u + "  (브라우저에 저장됨)";
+  }
+
+  document.getElementById("connect").addEventListener("click", () => connect($url.value));
+  $url.addEventListener("keydown", (e) => { if (e.key === "Enter") connect($url.value); });
+  document.getElementById("clear").addEventListener("click", () => {
+    localStorage.removeItem(KEY); $url.value = "";
+    $wrap.innerHTML = ""; $wrap.appendChild($empty);
+    $hint.textContent = "붙여넣은 URL은 이 브라우저에만 저장됩니다(localStorage).";
+  });
+
+  // 저장된 URL 자동 복구
+  const saved = localStorage.getItem(KEY);
+  if (saved) { $url.value = saved; connect(saved); }
+</script>
+</body>
+</html>

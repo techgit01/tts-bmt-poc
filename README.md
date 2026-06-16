@@ -16,9 +16,9 @@ GitHub Pages에는 그 **정적 산출물만** 올려 브라우저에서 재생�
 piper-plus 만 시뮬레이션 톤(호환 한국어 모델 부재). 데모 우측 상단 **`? 도움말`** 에서
 모드·지표 설명을 볼 수 있습니다.
 
-🎙️ **직접 생성해보기**: 데모 상단 버튼 → Colab의 인터랙티브 생성기(Gradio)에서
-Supertonic으로 **목소리(F1~F5/M1~M5)·속도(1.0x)·텍스트(최대 500자)·예문**을 골라
-실시간 합성할 수 있습니다. (정적 페이지라 생성은 Colab에서 실행)
+🎙️ **직접 생성해보기**: 저장소에 포함된 생성기 화면([`docs/generate.html`](docs/generate.html))에서
+Supertonic으로 **목소리(F1~F5/M1~M5)·속도(1.0x)·텍스트(최대 500자)·예문**을 골라 합성합니다.
+정적 페이지라 합성은 **Colab 생성기(Gradio)를 백엔드로 연결**해 실행합니다(노트북 셀 실행 → `gradio.live` URL 붙여넣기).
 
 ---
 
@@ -179,6 +179,7 @@ tts-bmt-poc/
 │  └─ cli.py               # tts-bmt run [--model KEY=PATH] | list
 ├─ docs/                   # <- GitHub Pages 서빙 루트
 │  ├─ index.html           # 정적 데모 (재생 + 파형 + 모드 표시 + 도움말 모달)  [소스]
+│  ├─ generate.html        # Supertonic 생성기 화면 (Colab 백엔드 연결)        [소스]
 │  ├─ .nojekyll            # Jekyll 건너뜀                          [소스]
 │  ├─ results/benchmark.json   # Colab 실측 결과 (커밋, CI 가 그대로 게시)
 │  └─ audio/<engine>/*.wav     # Colab 실측 음성 (커밋, CI 가 그대로 게시)
