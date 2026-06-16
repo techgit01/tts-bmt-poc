@@ -84,6 +84,18 @@
     padding:12px 14px; border-radius:3px;
   }
   .note b { color:var(--ink); }
+
+  /* 목소리 미리듣기 */
+  .voices { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media (max-width:620px){ .voices{ grid-template-columns:1fr; } }
+  .voice { background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px 12px; }
+  .voice.male { border-left:2px solid var(--kr); }
+  .voice.female { border-left:2px solid var(--signal); }
+  .voice .vn { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; }
+  .voice .pill { font-size:10px; padding:1px 6px; border:1px solid var(--line);
+    border-radius:2px; color:var(--ink-dim); margin-left:6px; }
+  .voice .vm { font-size:11px; color:var(--ink-dim); margin:3px 0 7px; }
+  .voice audio { width:100%; height:32px; }
 </style>
 </head>
 <body>
@@ -102,6 +114,12 @@
       각 번호는 서로 다른 화자(목소리)이며 <b>공식 캐릭터 설명(나이·톤)은 제공되지 않습니다</b> →
       같은 문장을 여러 목소리로 생성해 비교하고 마음에 드는 걸 고르세요.
     </div>
+
+    <h2>0 · 목소리 미리듣기</h2>
+    <p class="hint">같은 문장을 10종 보이스로 합성한 샘플입니다. Supertonic은 공식 캐릭터 설명을
+       제공하지 않으므로, 아래 <b>톤(평균 피치 Hz)</b>은 이 샘플에서 <b>직접 측정</b>한 값입니다 —
+       들어보고 마음에 드는 번호를 생성기에서 고르세요.</p>
+    <div class="voices" id="voices"></div>
 
     <h2>1 · 생성기 실행 (Colab)</h2>
     <div class="steps">
@@ -144,6 +162,32 @@
   </div>
 
 <script>
+  // 10종 보이스 — 톤은 동일 문장 합성 샘플에서 측정한 평균 피치(Hz)
+  const VOICES = [
+    {id:"F1", g:"여성", hz:218, tone:"밝고 높은 톤"},
+    {id:"F2", g:"여성", hz:240, tone:"가장 밝고 높은 톤"},
+    {id:"F3", g:"여성", hz:192, tone:"중간 톤"},
+    {id:"F4", g:"여성", hz:197, tone:"중간 톤"},
+    {id:"F5", g:"여성", hz:172, tone:"차분한 톤"},
+    {id:"M1", g:"남성", hz:165, tone:"높고 밝은 톤"},
+    {id:"M2", g:"남성", hz:109, tone:"낮은 톤"},
+    {id:"M3", g:"남성", hz:123, tone:"중간 톤"},
+    {id:"M4", g:"남성", hz:131, tone:"중간 톤"},
+    {id:"M5", g:"남성", hz:89,  tone:"가장 낮은 저음"},
+  ];
+  (function renderVoices(){
+    const wrap = document.getElementById("voices");
+    VOICES.forEach(v => {
+      const d = document.createElement("div");
+      d.className = "voice " + (v.g === "여성" ? "female" : "male");
+      d.innerHTML =
+        `<div class="vn">${v.id} <span class="pill">${v.g}</span></div>` +
+        `<div class="vm">${v.tone} · 평균 피치 ~${v.hz}Hz</div>` +
+        `<audio controls preload="none" src="voices/${v.id}.wav"></audio>`;
+      wrap.appendChild(d);
+    });
+  })();
+
   const KEY = "supertonic_gradio_url";
   const $url = document.getElementById("url");
   const $hint = document.getElementById("hint");
